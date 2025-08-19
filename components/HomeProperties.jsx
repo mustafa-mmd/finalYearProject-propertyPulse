@@ -6,8 +6,8 @@ import {getProperties} from "../utils/requests";
 
 
 const HomeProperties = async () => {
-  const properties = await getProperties();
-  const recentProperties = properties.sort(() => Math.random() - Math.random()).slice(0, 3);
+  const data = await getProperties();
+  const recentProperties = data.properties.sort(() => Math.random() - Math.random()).slice(0, 3);
 
   return (
     <>

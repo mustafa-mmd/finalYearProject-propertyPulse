@@ -32,7 +32,7 @@ const UserSchema = new Schema({
   email: { type: String, unique: true, required: [true, "Please provide an email"] },
   name: { type: String, required: [true, "Please provide a name"] },
   image: { type: String },
-  bookmarks: [{ type: Schema.Types.ObjectId, ref: "properties" }],
+  bookmarks: [{ type: Schema.Types.ObjectId, ref: "Property" }],
 }, { timestamps: true });
 
 const User = models.User || model("User", UserSchema);

@@ -1,12 +1,12 @@
 const apiUrl=process.env.NEXT_PUBLIC_API_URL || null
-async function getProperties() {
+async function getProperties({showFeatured=false}={}) {
   try{
     // Handle case where apiUrl is not set
     if (!apiUrl) {
       return [];
     }
     //fetch all properties
-    const res = await fetch(`${apiUrl}/prop`);
+    const res = await fetch(`${apiUrl}/prop${showFeatured ? '/featured' : ''}`,{cache:'no-store'});
     if (!res.ok) {
       throw new Error('Failed to fetch data');
     }

@@ -22,11 +22,51 @@
 
 
 
+// import mongoose from "mongoose";
+
+// const MONGO_URI = process.env.MONGO_URI;
+// if (!MONGO_URI) {
+//   throw new Error("Please define the MONGO_URI environment variable");
+// }
+
+// let cached = global.mongoose;
+
+// if (!cached) {
+//   cached = global.mongoose = { conn: null, promise: null };
+// }
+
+// async function connectDB() {
+//   if (cached.conn) {
+//     console.log("MongoDB is already connected");
+//     return cached.conn;
+//   }
+
+//   if (!cached.promise) {
+//     mongoose.set("strictQuery", true);
+//     cached.promise = mongoose.connect(MONGO_URI).then((mongoose) => {
+//       console.log("MongoDB connected successfully");
+//       return mongoose;
+//     }).catch((error) => {
+//       console.error("MongoDB connection failed:", error);
+//       throw error;
+//     });
+//   }
+//   cached.conn = await cached.promise;
+//   return cached.conn;
+// }
+
+// export default connectDB;
+
+
+
+
+// config/database.js
 import mongoose from "mongoose";
 
 const MONGO_URI = process.env.MONGO_URI;
+
 if (!MONGO_URI) {
-  throw new Error("Please define the MONGO_URI environment variable");
+  throw new Error("Please define the MONGO_URI environment variable in .env.local");
 }
 
 let cached = global.mongoose;
@@ -37,20 +77,25 @@ if (!cached) {
 
 async function connectDB() {
   if (cached.conn) {
-    console.log("MongoDB is already connected");
+    // Already connected
     return cached.conn;
   }
 
   if (!cached.promise) {
     mongoose.set("strictQuery", true);
-    cached.promise = mongoose.connect(MONGO_URI).then((mongoose) => {
-      console.log("MongoDB connected successfully");
-      return mongoose;
-    }).catch((error) => {
-      console.error("MongoDB connection failed:", error);
-      throw error;
-    });
+    cached.promise = mongoose
+      .connect(MONGO_URI)
+      .then((mongoose) => {
+        console.log("✅ MongoDB connected successfully");
+        return mongoose;
+      })
+      .catch((error) => {
+        console.error("❌ MongoDB connection failed:", error.message);
+        // Do not throw error in dev to prevent Access Denied
+        return null;
+      });
   }
+
   cached.conn = await cached.promise;
   return cached.conn;
 }

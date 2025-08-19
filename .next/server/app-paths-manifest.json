@@ -1,5 +1,7 @@
 {
+  "/api/prop/featured/route": "app/api/prop/featured/route.js",
   "/api/prop/route": "app/api/prop/route.js",
   "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
-  "/page": "app/page.js"
+  "/page": "app/page.js",
+  "/properties/page": "app/properties/page.js"
 }

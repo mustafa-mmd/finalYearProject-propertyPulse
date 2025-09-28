@@ -549,9 +549,6 @@ video {
 .visible {
   visibility: visible;
 }
-.fixed {
-  position: fixed;
-}
 .absolute {
   position: absolute;
 }
@@ -854,14 +851,8 @@ video {
 .cursor-pointer {
   cursor: pointer;
 }
-.list-inside {
-  list-style-position: inside;
-}
 .list-none {
   list-style-type: none;
-}
-.list-disc {
-  list-style-type: disc;
 }
 .appearance-none {
   -webkit-appearance: none;

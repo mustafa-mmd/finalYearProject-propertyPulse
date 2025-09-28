@@ -1,104 +1,141 @@
+
 'use client';
-import { POST } from "@/app/api/bookmark/route";
-import { useState,useEffect } from "react";
+import { useState } from "react";
 import { toast } from "react-toastify";
 import { useGlobalContext } from "@/context/globalContext";
-const Message = ({message}) => {
-  const [isRead,setIsRead]=useState(message.read);
-  const [isDeleted,setIsDeleted]=useState(false);
 
-  const {setUnreadCount}=useGlobalContext();
+const Message = ({ message }) => {
+  const [isRead, setIsRead] = useState(!!message.read);
+  const [isDeleted, setIsDeleted] = useState(false);
 
+  const { setUnreadCount } = useGlobalContext();
 
-  const handleReadClick=async()=>{
-    try{
-const  res=await fetch(`/api/messages/${message._id}`,{
-  method:'PUT'
-});
+  // ---- Handle Mark As Read / New ----
+  const handleReadClick = async () => {
+    try {
+      const res = await fetch(`/api/messages/${message._id}`, {
+        method: "PUT",
+      });
 
-if(res.status ===200){
-  const {read}=await res.json();
-  setIsRead(read);
-  setUnreadCount((prevCount)=>(read ? prevCount -1 : prevCount + 1))
-  if(read){
-    toast.success('Mark as read');
-  }else{
-    toast.success('Mark as new');
-  }
-}
-    }catch(err){
-console.log(err);
-toast.error('something went wrong');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to update read status");
+
+      const { read } = data;
+      setIsRead(read);
+
+      setUnreadCount((prev) => {
+        if (read) return Math.max(0, prev - 1);
+        return prev + 1;
+      });
+
+      toast.success(read ? "Marked as read" : "Marked as new");
+    } catch (err) {
+      console.error("handleReadClick error", err);
+      toast.error(err.message || "Something went wrong while updating message");
     }
-  }
+  };
 
-  const handleDeleteClick=async()=>{
-    try{
-const res=await fetch(`/api/messages/${message._id}`,{method:'DELETE'});
+  // ---- Handle Delete ----
+  const handleDeleteClick = async () => {
+    try {
+      const res = await fetch(`/api/messages/${message._id}`, {
+        method: "DELETE",
+      });
 
-if(res.status===200){
-  setIsDeleted(true);
-  setUnreadCount((prevCount)=>prevCount - 1);
-  toast.success('Message Deleted');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to delete message");
 
-}
+      setIsDeleted(true);
+      setUnreadCount((prev) => (isRead ? prev : Math.max(0, prev - 1)));
 
-    }catch(err){
-console.log(err);
-toast.error('Message was not  deleted');
+      toast.success("Message deleted");
+    } catch (err) {
+      console.error("handleDeleteClick error", err);
+      toast.error(err.message || "Message could not be deleted");
     }
+  };
 
-  }
-if(isDeleted){
-  return null;
-}
+  if (isDeleted) return null;
 
   return (
-    <div
-              className="relative bg-white p-4 rounded-md shadow-md border border-gray-200"
+    <div className="relative bg-white p-4 rounded-md shadow-md border border-gray-200">
+      {!isRead && (
+        <div className="absolute top-2 right-2 bg-yellow-500 text-white px-2 py-1 rounded-md">
+          New
+        </div>
+      )}
+
+      <h2 className="text-xl mb-4">
+        <span className="font-bold">Property Inquiry:</span>{" "}
+        {message.property?.name ?? "—"}
+      </h2>
+
+      <p className="text-gray-700">{message.body}</p>
+
+      <ul className="mt-4 space-y-1">
+        <li>
+          <strong>Name:</strong>{" "}
+          {message.sender?.username ??
+            message.sender?.name ??
+            message.name ??
+            "—"}
+        </li>
+
+        <li>
+          <strong>Reply Email:</strong>{" "}
+          {message.email ? (
+            <a
+              href={`mailto:${message.email}`}
+              className="text-blue-500 underline"
             >
-              {!isRead && (
-              <div className="absolute top-2 right-2 bg-yellow-500 text-white px-2 py-1 rounded-md "> New</div>
-              )}
-              <h2 className="text-xl mb-4">
-                <span className="font-bold">Property Inquiry:</span> 
-                { }
-                {message.property.name}
-              </h2>
-              <p className="text-gray-700">
-                {message.body}
-              </p>
+              {message.email}
+            </a>
+          ) : (
+            "—"
+          )}
+        </li>
 
-              <ul className="mt-4">
-                <li><strong>Name:</strong> {message.sender.username} </li>
+        <li>
+          <strong>Reply Phone:</strong>{" "}
+          {message.phone ? (
+            <a
+              href={`tel:${message.phone}`}
+              className="text-blue-500 underline"
+            >
+              {message.phone}
+            </a>
+          ) : (
+            "—"
+          )}
+        </li>
 
-                <li>
-                  <strong>Reply Email:</strong>{' '} 
-                  <a href={`mailto:${message.email}`} className="text-blue-500"
-                    >{message.email}</a
-                  >
-                </li>
-                <li>
-                  <strong>Reply Phone:</strong>{' '}
-                  <a href={`tel:${message.phone}`}className="text-blue-500"
-                    >{message.phone}</a
-                  >
-                </li>
-                <li><strong>Received:</strong>{new Date( message.createdAt).toLocaleString()}</li>
-              </ul>
-              <button
-              onClick={handleReadClick}
-                className={`mt-4 mr-3 ${isRead ? 'bg-gray-300': 'bg-blue-500 text-white' }   py-1 px-3 rounded-md`}
-              >
-                {isRead ? 'Mark As New' : 'Mark As Read'}
-              </button>
-              <button 
-              onClick={handleDeleteClick}
-              className="mt-4 bg-red-500 text-white py-1 px-3 rounded-md">
-                Delete
-              </button>
-            </div>
-  )
-}
+        <li>
+          <strong>Received:</strong>{" "}
+          {message.createdAt
+            ? new Date(message.createdAt).toLocaleString()
+            : "—"}
+        </li>
+      </ul>
 
-export default Message
+      <div className="mt-4 flex space-x-3">
+        <button
+          onClick={handleReadClick}
+          className={`${
+            isRead ? "bg-gray-300" : "bg-blue-500 text-white"
+          } py-1 px-3 rounded-md`}
+        >
+          {isRead ? "Mark As New" : "Mark As Read"}
+        </button>
+
+        <button
+          onClick={handleDeleteClick}
+          className="bg-red-500 text-white py-1 px-3 rounded-md"
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default Message;

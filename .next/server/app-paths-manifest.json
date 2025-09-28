@@ -1,7 +1,12 @@
 {
-  "/api/prop/featured/route": "app/api/prop/featured/route.js",
+  "/api/messages/unread-count/route": "app/api/messages/unread-count/route.js",
   "/api/prop/route": "app/api/prop/route.js",
+  "/api/prop/featured/route": "app/api/prop/featured/route.js",
+  "/api/search/route": "app/api/search/route.js",
   "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
+  "/profile/page": "app/profile/page.js",
+  "/properties/saved/page": "app/properties/saved/page.js",
+  "/properties/[id]/page": "app/properties/[id]/page.js",
   "/page": "app/page.js",
-  "/properties/page": "app/properties/page.js"
+  "/properties/search-results/page": "app/properties/search-results/page.js"
 }

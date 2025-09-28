@@ -59,8 +59,6 @@
 
 
 
-
-// config/database.js
 import mongoose from "mongoose";
 
 const MONGO_URI = process.env.MONGO_URI;
@@ -77,12 +75,13 @@ if (!cached) {
 
 async function connectDB() {
   if (cached.conn) {
-    // Already connected
+    console.log("✅ Using existing MongoDB connection");
     return cached.conn;
   }
 
   if (!cached.promise) {
     mongoose.set("strictQuery", true);
+    
     cached.promise = mongoose
       .connect(MONGO_URI)
       .then((mongoose) => {
@@ -91,13 +90,21 @@ async function connectDB() {
       })
       .catch((error) => {
         console.error("❌ MongoDB connection failed:", error.message);
-        // Do not throw error in dev to prevent Access Denied
-        return null;
+        // Reset the promise so we can try again
+        cached.promise = null;
+        throw error; // Re-throw the error to handle it upstream
       });
   }
 
-  cached.conn = await cached.promise;
-  return cached.conn;
+  try {
+    cached.conn = await cached.promise;
+    return cached.conn;
+  } catch (error) {
+    // Reset both connection and promise on error
+    cached.conn = null;
+    cached.promise = null;
+    throw error;
+  }
 }
 
 export default connectDB;

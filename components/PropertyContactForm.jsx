@@ -120,12 +120,13 @@ toast.error('Error sending form')
                           Message:
                         </label>
                         <textarea
-                          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 h-44 focus:outline-none focus:shadow-outline"
-                          id="message"
-                          placeholder="Enter your message"
-                          value={message}
-                          onChange={(e)=>setName(e.target.value)}
-                        ></textarea>
+  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 h-44 focus:outline-none focus:shadow-outline"
+  id="message"
+  placeholder="Enter your message"
+  value={message}
+  onChange={(e)=>setMessage(e.target.value)}  
+></textarea>
+
                       </div>
 
                       <div>

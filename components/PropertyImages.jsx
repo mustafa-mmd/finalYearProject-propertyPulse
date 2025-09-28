@@ -1,57 +1,130 @@
-import Image from "next/image"
-import {Gallery,Item} from 'react-photoswipe-gallery';
-const PropertyImages = ({images}) => {
-  return 
-  <Gallery>
-  <section className="bg-blue-50 p-4">
-    <div className="container mx-auto">
-      {images.length===1 ? (
+// import Image from "next/image"
+// import {Gallery,Item} from 'react-photoswipe-gallery';
+// const PropertyImages = ({images}) => {
+//   return 
+//   <Gallery>
+//   <section className="bg-blue-50 p-4">
+//     <div className="container mx-auto">
+//       {images.length===1 ? (
 
-<Item original={images[0]}
-thumbnail={images[0]}
-width='1000'
-height='600'
->
-{({ref,open})=>(
-  <Image 
-  ref={ref}
-  onClick={open}
-  src={images[0]} alt=""
-        className="object-cover h-[400px] mx-auto rounded-xl" width={1800} height={400} priority={true}/>
-)}
+// <Item original={images[0]}
+// thumbnail={images[0]}
+// width='1000'
+// height='600'
+// >
+// {({ref,open})=>(
+//   <Image 
+//   ref={ref}
+//   onClick={open}
+//   src={images[0]} alt=""
+//         className="object-cover h-[400px] mx-auto rounded-xl" width={1800} height={400} priority={true}/>
+// )}
 
-</Item>
+// </Item>
 
         
-      ):(
-        <div className="grid grid-cols-2 gap-4">{images.map((image,index)=>(<div key={index}
-        className={`${
-          images.length===3 && index===2 ? 'col-span-2' : 'col-span-1'
-        }`}>
+//       ):(
+//         <div className="grid grid-cols-2 gap-4">{images.map((image,index)=>(<div key={index}
+//         className={`${
+//           images.length===3 && index===2 ? 'col-span-2' : 'col-span-1'
+//         }`}>
 
-<Item original={image}
-thumbnail={image}
-width='1000'
-height='600'
->
-{({ref,open})=>(
-  <Image 
-  ref={ref}
-  onClick={open}
-  src={images} alt=""
-        className="object-cover h-[400px] w-full rounded-xl" width={0} height={0} sizes="100vw" priority={true}/>
-)}
+// <Item original={image}
+// thumbnail={image}
+// width='1000'
+// height='600'
+// >
+// {({ref,open})=>(
+//   <Image 
+//   ref={ref}
+//   onClick={open}
+//   src={images} alt=""
+//         className="object-cover h-[400px] w-full rounded-xl" width={0} height={0} sizes="100vw" priority={true}/>
+// )}
 
-</Item>
+// </Item>
 
 
 
-        </div>))}
-          </div>
-      )}
-    </div>
-  </section>
-  </Gallery>
-}
+//         </div>))}
+//           </div>
+//       )}
+//     </div>
+//   </section>
+//   </Gallery>
+// }
 
-export default PropertyImages
+// export default PropertyImages
+
+
+
+
+
+import Image from "next/image";
+import { Gallery, Item } from 'react-photoswipe-gallery';
+
+const PropertyImages = ({ images }) => {
+  return (
+    <Gallery>
+      <section className="bg-blue-50 p-4">
+        <div className="container mx-auto">
+          {images.length === 1 ? (
+            <Item
+              original={images[0]}
+              thumbnail={images[0]}
+              width="1000"
+              height="600"
+            >
+              {({ ref, open }) => (
+                <Image
+                  ref={ref}
+                  onClick={open}
+                  src={images[0]}
+                  alt="Property image"
+                  className="object-cover h-[400px] mx-auto rounded-xl"
+                  width={1800}
+                  height={400}
+                  priority={true}
+                />
+              )}
+            </Item>
+          ) : (
+            <div className="grid grid-cols-2 gap-4">
+              {images.map((image, index) => (
+                <div
+                  key={index}
+                  className={`${
+                    images.length === 3 && index === 2 ? 'col-span-2' : 'col-span-1'
+                  }`}
+                >
+                  <Item
+                    original={image}
+                    thumbnail={image}
+                    width="1000"
+                    height="600"
+                  >
+                    {({ ref, open }) => (
+                      <Image
+                        ref={ref}
+                        onClick={open}
+                        src={image}  // ✅ FIXED: was `images`, now `image`
+                        alt={`Property image ${index + 1}`}
+                        className="object-cover h-[400px] w-full rounded-xl"
+                        width={600}
+                        height={400}
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        priority={index === 0} // Only prioritize first image
+                      />
+                    )}
+                  </Item>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+    </Gallery>
+  );
+};
+
+export default PropertyImages;

@@ -65,6 +65,7 @@ const PropertyIdPage = () => {
 
                   <PropertyContactForm property={property}/>
                   
+                  
                 </aside>
               </div>
             </div>
@@ -77,3 +78,7 @@ const PropertyIdPage = () => {
 };
 
 export default PropertyIdPage;
+
+
+
+

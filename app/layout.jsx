@@ -5,7 +5,7 @@ import "../styles/global.css";
 import "react-toastify/dist/ReactToastify.css"
 import { GlobalProvider } from "@/context/globalContext";
 import 'photoswipe/dist/photoswipe.css'
-// import "@/utils/disableConsole";
+import "@/utils/disableConsole";
 export const metadata = {
   title: "Next.js Property App",
   description: "A property listing application built with Next.js",

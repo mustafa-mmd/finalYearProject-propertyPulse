@@ -121,7 +121,7 @@
 
 
 import connectDB from "@/config/database";
-import Property from "@/models/Property";
+import Property from "@/models/property";
 import User from "@/models/User";
 import { getSessionUser } from "@/utils/getSessionUser";
 import cloudinary from "@/config/cloudinery";

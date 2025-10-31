@@ -74,7 +74,7 @@
 import crypto from "crypto";
 import connectDB from "@/config/database";
 import Payment from "@/models/Payment";
-import Property from "@/models/Property";
+import Property from "@/models/property";
 
 export async function POST(req) {
   try {

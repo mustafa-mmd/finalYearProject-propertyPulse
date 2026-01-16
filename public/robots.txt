@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Sitemap: https://https://final-year-project-property-pulse.vercel.app//sitemap.xml
+
+# Crawl-delay: 10
+# Uncomment above if you want to slow down crawlers

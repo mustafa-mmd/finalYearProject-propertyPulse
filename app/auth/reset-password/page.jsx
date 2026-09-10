@@ -1,0 +1,2 @@
+import { Suspense } from "react"; import { ResetPasswordForm } from "@/components/PasswordRecoveryForm";
+export default function ResetPasswordPage() { return <main className="min-h-screen bg-slate-50 px-4 py-16"><div className="mx-auto max-w-md"><h1 className="mb-8 text-center text-3xl font-bold">Choose a new password</h1><Suspense fallback={<div>Loading…</div>}><ResetPasswordForm /></Suspense></div></main>; }

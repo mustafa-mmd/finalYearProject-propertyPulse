@@ -27,12 +27,12 @@
 
 
 
-import { getProperties } from "@/utils/requests"
+import { queryProperties } from "@/utils/propertyQueries"
 import FeaturedPropertyCard from "./FeaturedPropertyCard";
 
 const FeaturedProperties = async () => {
   try {
-    const properties = await getProperties({ showFeatured: true });
+    const properties = await queryProperties({ showFeatured: true });
     
     // Return null if no properties found
     if (!properties || properties.length === 0) {

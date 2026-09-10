@@ -23,18 +23,3 @@ export async function fetchJson(url, options = {}) {
 
   return data;
 }
-
-// In your component
-useEffect(() => {
-  const checkBookmarkStatus = async () => {
-    try {
-      const data = await fetchJson(`/api/bookmarks/check?postId=${postId}`);
-      setIsBookmarked(data.isBookmarked);
-    } catch (error) {
-      console.error('Bookmark check failed:', error);
-      setIsBookmarked(false); // Fallback to false
-    }
-  };
-
-  checkBookmarkStatus();
-}, [postId]);

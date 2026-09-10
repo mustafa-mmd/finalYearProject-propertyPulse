@@ -1,148 +1,63 @@
-
-// import Image from 'next/image'
-// import Link from 'next/link'
-// import {FaBed,FaBath,FaRulerCombined,FaMoneyBill,FaMapMarker} from 'react-icons/fa'
-// const PropertyCard = ({property}) => {
-//   const getRateDisplay=()=>{
-//     const {rates}=property;
-//     if(rates.monthly){
-//       return `${rates.monthly.toLocaleString()}/mo`
-//     }else if(rates.weekly){
-// return `${rates.weekly.toLocaleString()}/wk`
-//     }else if(rates.nightly){
-// return `${rates.nightly.toLocaleString()}/night`
-//     }
-//   }
-//   return (
-//     <div className="rounded-xl shadow-md relative">
-//             <Image
-//               src={property.images[0]}
-//               alt=""
-//               height={0}
-//               width={0}
-//               sizes='100vw'
-//               className='w-full h-auto rounded-t-xl'
-//             />
-//             <div className="p-4">
-//               <div className="text-left md:text-center lg:text-left mb-6">
-//                 <div className="text-gray-600">{property.type}</div>
-//                 <h3 className="text-xl font-bold">{property.name}</h3>
-//               </div>
-//               <h3
-//                 className="absolute top-[10px] right-[10px] bg-white px-4 py-2 rounded-lg text-blue-500 font-bold text-right md:text-center lg:text-right"
-//               >
-//                ${getRateDisplay()}
-//               </h3>
-
-//               <div className="flex justify-center gap-4 text-gray-500 mb-4">
-//                 <p>
-//                   < FaBed className="inline mr-2"/> {property.beds} {''}
-//                   <span className="md:hidden lg:inline">Beds</span>
-//                 </p>
-//                 <p>
-//                   <FaBath className="inline mr-2" /> {property.baths} {''}
-//                   <span className="md:hidden lg:inline">Baths</span>
-//                 </p>
-//                 <p>
-//                   < FaRulerCombined className="inline mr-2"/>
-//                   {property.square_feet} {''}<span className="md:hidden lg:inline">sqft</span>
-//                 </p>
-//               </div>
-
-//               <div
-//                 className="flex justify-center gap-4 text-green-900 text-sm mb-4"
-//               >
-//                 {property.rates.nightly && (
-//                   <p>< FaMoneyBill className="inline mr-2"/> Nightly</p>
-//                 )}
-
-//               {property.rates.weekly && (
-//                   <p><FaMoneyBill className="inline mr-2"/>Weekly</p>
-//                 )}  
-
-//                  {property.rates.monthly && (
-//                   <p><FaMoneyBill className="inline mr-2"/>Monthly</p>
-//                 )}
-// </div>
-//               <div className="border border-gray-100 mb-5"></div>
-
-//               <div className="flex flex-col lg:flex-row justify-between mb-4">
-//                 <div className="flex align-middle gap-2 mb-4 lg:mb-0">
-//                   <FaMapMarker
-//                     className="mt-1 text-orange-700"
-//                   />
-//                   <span className="text-orange-700"> {property.location.city} {property.location.state} </span>
-//                 </div>
-//                 <Link
-//                   href={`/properties/${property._id}`}
-//                   className="h-[36px] bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-center text-sm"
-//                 >
-//                   Details
-//                 </Link>
-//               </div>
-//             </div>
-//           </div>
- 
-//   )
-// }
-
-// export default PropertyCard
-
-
-
-
-
-
-
-
-
-
 import Image from "next/image";
 import Link from "next/link";
 import { FaBed, FaBath, FaRulerCombined, FaMoneyBill, FaMapMarker } from "react-icons/fa";
+import { buildLocationLabel, normalizeLocation } from "@/utils/location";
+import { formatPropertyImage } from "@/utils/imageHelper";
+import CompareButton from "@/components/CompareButton";
 
 const PropertyCard = ({ property }) => {
+  const location = normalizeLocation(property.location);
+  const money = new Intl.NumberFormat("en-ZA", {
+    style: "currency",
+    currency: property.currency || "ZAR",
+    maximumFractionDigits: 0,
+  });
   const getRateDisplay = () => {
     const rates = property.rates || {};
-    if (rates.monthly) return `${rates.monthly.toLocaleString()}/mo`;
-    if (rates.weekly) return `${rates.weekly.toLocaleString()}/wk`;
-    if (rates.nightly) return `${rates.nightly.toLocaleString()}/night`;
-    return "";
+    if (property.listingPurpose === "SALE" && property.pricing?.salePrice) {
+      return money.format(property.pricing.salePrice);
+    }
+    if (rates.monthly) return `${money.format(rates.monthly)}/mo`;
+    if (rates.weekly) return `${money.format(rates.weekly)}/wk`;
+    if (rates.nightly) return `${money.format(rates.nightly)}/night`;
+    return "Price on request";
   };
 
-  // ✅ Safe image URL handler
-  const getImageSrc = () => {
-    const firstImage = property.images?.[0];
-    if (!firstImage || typeof firstImage !== "string") {
-      return "/placeholder.jpg"; // local fallback in public folder
-    }
-    // If relative path without protocol, make it a public path
-    if (!firstImage.startsWith("http") && !firstImage.startsWith("/")) {
-      return `/${firstImage}`;
-    }
-    return firstImage;
-  };
+  const imgSrc = formatPropertyImage(property.images?.[0]);
 
   return (
-    <div className="rounded-xl shadow-md relative">
-      <div className="relative w-full h-64">
+    <div className="rounded-xl shadow-md relative bg-white">
+      <div className="relative w-full h-64 overflow-hidden rounded-t-xl">
         <Image
-          src={getImageSrc()}
+          src={imgSrc}
           alt={property.name || "Property image"}
           fill
-          sizes="100vw"
-          className="object-cover rounded-t-xl"
+          quality={95}
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          className="object-cover rounded-t-xl hover:scale-105 transition duration-300"
         />
       </div>
 
       <div className="p-4">
         <div className="text-left md:text-center lg:text-left mb-6">
-          <div className="text-gray-600">{property.type}</div>
+          <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
+            <span>{property.listingCategory?.replaceAll("_", " ") || property.type}</span>
+            {property.listingPurpose && (
+              <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-bold text-blue-700">
+                {property.listingPurpose.replaceAll("_", " ")}
+              </span>
+            )}
+            {property.verification?.status === "VERIFIED" && (
+              <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-700">
+                ✓ Verified
+              </span>
+            )}
+          </div>
           <h3 className="text-xl font-bold">{property.name}</h3>
         </div>
 
         <h3 className="absolute top-[10px] right-[10px] bg-white px-4 py-2 rounded-lg text-blue-500 font-bold text-right md:text-center lg:text-right">
-          ${getRateDisplay()}
+          {getRateDisplay()}
         </h3>
 
         <div className="flex justify-center gap-4 text-gray-500 mb-4">
@@ -183,16 +98,21 @@ const PropertyCard = ({ property }) => {
         <div className="flex flex-col lg:flex-row justify-between mb-4">
           <div className="flex align-middle gap-2 mb-4 lg:mb-0">
             <FaMapMarker className="mt-1 text-orange-700" />
-            <span className="text-orange-700">
-              {property.location?.city} {property.location?.state}
+            <span className="line-clamp-1 text-orange-700">
+              {location.city && location.state
+                ? `${location.city}, ${location.state}`
+                : location.formattedAddress || buildLocationLabel(location)}
             </span>
           </div>
-          <Link
-            href={`/properties/${property._id}`}
-            className="h-[36px] bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-center text-sm"
-          >
-            Details
-          </Link>
+          <div className="flex items-center gap-2">
+            <CompareButton propertyId={property._id.toString()} compact />
+            <Link
+              href={`/properties/${property._id}`}
+              className="h-[38px] rounded-lg bg-blue-500 px-4 py-2 text-center text-sm text-white hover:bg-blue-600"
+            >
+              Details
+            </Link>
+          </div>
         </div>
       </div>
     </div>

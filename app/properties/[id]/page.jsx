@@ -1,84 +1,59 @@
-'use client';
-import { useEffect, useState } from "react"; 
-import { useParams } from "next/navigation"; 
-import { getProperty } from "@/utils/requests";
-import PropertyHeaderImage from "@/components/PropertyHeaderImage";
 import Link from "next/link";
+import { notFound } from "next/navigation";
+import { FaArrowLeft } from "react-icons/fa";
+import { queryProperty } from "@/utils/propertyQueries";
+import { getActor } from "@/utils/authorization";
+import PropertyHeaderImage from "@/components/PropertyHeaderImage";
 import PropertyDetails from "@/components/PropertyDetails";
-import PropertyImages from "@/components/PropertyImages";
-import {FaArrowLeft} from "react-icons/fa";
-import Spinner from "@/components/Spinner";
 import BookmarkButton from "@/components/BookmarkButton";
 import ShareButton from "@/components/ShareButton";
 import PropertyContactForm from "@/components/PropertyContactForm";
-const PropertyIdPage = () => {
-  const { id } = useParams();
-  const [property, setProperty] = useState(null);
-  const [loading, setLoading] = useState(true);
+import CompareButton from "@/components/CompareButton";
+import RecentlyViewedRecorder from "@/components/RecentlyViewedRecorder";
 
-  useEffect(() => {
-    const fetchProperty = async () => {
-      const propertyData = await getProperty(id);
-      if (propertyData) {
-        setProperty(propertyData);
-      } else {
-        console.error('Property not found');
-      }
-      setLoading(false);
-    };
-    fetchProperty();
-  }, [id]);
+export const dynamic = "force-dynamic";
 
-  if (!property && loading) {
-    return <h1 className="text-center text-2xl font-bold mt-10">Property Not Found</h1>; 
-  }
+export default async function PropertyPage({ params }) {
+  const { id } = await params;
+  const actor = await getActor();
+  const property = await queryProperty(id, {
+    actorId: actor?.id,
+    canReview: actor?.permissions?.includes("properties.review") || false,
+  });
+  if (!property) notFound();
 
   return (
     <>
-    {loading && <Spinner loading={loading}/>}
-      {!loading && property && (
-        <>
-          <PropertyHeaderImage image={property.images[0]} />
+      <RecentlyViewedRecorder propertyId={property._id.toString()} />
 
-          <section>
-            <div className="container m-auto py-6 px-6">
-              <Link
-                href="/properties"
-                className="text-blue-500 hover:text-blue-600 flex items-center"
-              >
-                <FaArrowLeft className="f mr-2"></FaArrowLeft> Back to Properties
-              </Link>
-            </div>
-          </section>
+      {/* Full Airbnb-style gallery hero — passes all images + property metadata */}
+      <PropertyHeaderImage
+        images={property.images || []}
+        property={property}
+      />
 
-          <section className="bg-blue-50">
-            <div className="container m-auto py-10 px-6">
-              <div className="grid grid-cols-1 md:grid-cols-70/30 w-full gap-6">
-                
-<PropertyDetails property={property}/>
-                
-                <aside className="space-y-4">       
-                 
-                 <BookmarkButton property={property}  />
+      <section>
+        <div className="container m-auto px-6 py-6">
+          <Link href="/properties" className="flex items-center text-blue-600 hover:text-blue-700">
+            <FaArrowLeft className="mr-2" /> Back to properties
+          </Link>
+        </div>
+      </section>
 
-                 <ShareButton property={property}/>
-
-                  <PropertyContactForm property={property}/>
-                  
-                  
-                </aside>
-              </div>
-            </div>
-          </section>
-          <PropertyImages images={property.images}/>
-        </>
-      )}
+      <section className="bg-blue-50">
+        <div className="container m-auto px-6 py-10">
+          <div className="grid w-full grid-cols-1 gap-6 md:grid-cols-70/30">
+            <PropertyDetails property={property} />
+            <aside className="space-y-4">
+              <BookmarkButton property={property} />
+              <CompareButton propertyId={property._id.toString()} />
+              <ShareButton property={property} />
+              <PropertyContactForm property={property} />
+            </aside>
+          </div>
+        </div>
+      </section>
+      {/* PropertyImages removed — gallery is now in the hero above */}
     </>
   );
-};
-
-export default PropertyIdPage;
-
-
-
-
+}

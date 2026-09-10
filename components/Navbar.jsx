@@ -1,467 +1,146 @@
-// 'use client';
-// import { useState,useEffect } from 'react';
-// import { usePathname } from 'next/navigation';
-// import Image from 'next/image';
-// import Link from 'next/link';
-// import logo from '../assets/images/logo-white.png';
-// import profileDefault from '../assets/images/profile.png';
-// import { FaGoogle } from 'react-icons/fa';
-// import {signIn,signOut,useSession,getProviders} from "next-auth/react";
+"use client";
 
-// const Navbar = () => {
-//   const { data: session } = useSession();
+import { useState } from "react";
+import { usePathname } from "next/navigation";
+import Image from "next/image";
+import Link from "next/link";
+import { signOut, useSession } from "next-auth/react";
+import logo from "@/assets/images/logo-white.png";
+import UnreadMessageCount from "@/components/UnreadMessageCount";
+import UserAvatar from "@/components/UserAvatar";
+import { useTranslation } from "@/context/I18nContext";
+import { canAccessAdmin } from "@/config/admin";
 
-
-
-//   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-//   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-//   const [providers, setProviders] = useState(false);
-
-//   const pathname = usePathname();
-// useEffect(()=>{
-//   const setAuthProviders = async () => {
-//     const res = await getProviders();
-//     setProviders(res);
-//   }
-//   setAuthProviders();
-// },[]);
-
-//   return (
-//     <nav className='bg-blue-700 border-b border-blue-500'>
-//       <div className='mx-auto max-w-7xl px-2 sm:px-6 lg:px-8'>
-//         <div className='relative flex h-20 items-center justify-between'>
-//           <div className='absolute inset-y-0 left-0 flex items-center md:hidden'>
-//             {/* <!-- Mobile menu button--> */}
-//             <button
-//               type='button'
-//               id='mobile-dropdown-button'
-//               className='relative inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white'
-//               aria-controls='mobile-menu'
-//               aria-expanded='false'
-//               onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-//             >
-//               <span className='absolute -inset-0.5'></span>
-//               <span className='sr-only'>Open main menu</span>
-//               <svg
-//                 className='block h-6 w-6'
-//                 fill='none'
-//                 viewBox='0 0 24 24'
-//                 strokeWidth='1.5'
-//                 stroke='currentColor'
-//                 aria-hidden='true'
-//               >
-//                 <path
-//                   strokeLinecap='round'
-//                   strokeLinejoin='round'
-//                   d='M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5'
-//                 />
-//               </svg>
-//             </button>
-//           </div>
-
-//           <div className='flex flex-1 items-center justify-center md:items-stretch md:justify-start'>
-//             {/* <!-- Logo --> */}
-//             <Link className='flex flex-shrink-0 items-center' href='/'>
-//               <Image className='h-10 w-auto' src={logo} alt='PropertyPulse' />
-
-//               <span className='hidden md:block text-white text-2xl font-bold ml-2'>
-//                 PropertyPulse
-//               </span>
-//             </Link>
-//             {/* <!-- Desktop Menu Hidden below md screens --> */}
-//             <div className='hidden md:ml-6 md:block'>
-//               <div className='flex space-x-2'>
-//                 <Link
-//                   href='/'
-//                   className={`${
-//                     pathname === '/' ? 'bg-black' : ''
-//                   } text-white hover:bg-gray-900 hover:text-white rounded-md px-3 py-2`}
-//                 >
-//                   Home
-//                 </Link>
-//                 <Link
-//                   href='/properties'
-//                   className={`${
-//                     pathname === '/properties' ? 'bg-black' : ''
-//                   } text-white hover:bg-gray-900 hover:text-white rounded-md px-3 py-2`}
-//                 >
-//                   Properties
-//                 </Link>
-//                 {session && (
-//                   <Link
-//                     href='/properties/add'
-//                     className={`${
-//                       pathname === '/properties/add' ? 'bg-black' : ''
-//                     } text-white hover:bg-gray-900 hover:text-white rounded-md px-3 py-2`}
-//                   >
-//                     Add Property
-//                   </Link>
-//                 )}
-//               </div>
-//             </div>
-//           </div>
-
-//           {/* <!-- Right Side Menu (Logged Out) --> */}
-//           {!session && (
-//             <div className='hidden md:block md:ml-6'>
-//               <div className='flex items-center'>
-//                 {providers && Object.values(providers).map((provider,index) => (
-//                <button onClick={()=>signIn(provider.id)} key={index} className='flex items-center text-white bg-gray-700 hover:bg-gray-900 hover:text-white rounded-md px-3 py-2'>
-//                   <FaGoogle className='text-white mr-2' />
-//                   <span>Login or Register</span>
-//                 </button>
-//                 ))}
-                
-//               </div>
-//             </div>
-//           )}
-
-//           {/* <!-- Right Side Menu (Logged In) --> */}
-//           {session && (
-//             <div className='absolute inset-y-0 right-0 flex items-center pr-2 md:static md:inset-auto md:ml-6 md:pr-0'>
-//               <Link href='/messages' className='relative group'>
-//                 <button
-//                   type='button'
-//                   className='relative rounded-full bg-gray-800 p-1 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800'
-//                 >
-//                   <span className='absolute -inset-1.5'></span>
-//                   <span className='sr-only'>View notifications</span>
-//                   <svg
-//                     className='h-6 w-6'
-//                     fill='none'
-//                     viewBox='0 0 24 24'
-//                     strokeWidth='1.5'
-//                     stroke='currentColor'
-//                     aria-hidden='true'
-//                   >
-//                     <path
-//                       strokeLinecap='round'
-//                       strokeLinejoin='round'
-//                       d='M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0'
-//                     />
-//                   </svg>
-//                 </button>
-//                 <span className='absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full'>
-//                   2
-//                   {/* <!-- Replace with the actual number of notifications --> */}
-//                 </span>
-//               </Link>
-//               {/* <!-- Profile dropdown button --> */}
-//               <div className='relative ml-3'>
-//                 <div>
-//                   <button
-//                     type='button'
-//                     className='relative flex rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800'
-//                     id='user-menu-button'
-//                     aria-expanded='false'
-//                     aria-haspopup='true'
-//                     onClick={() => setIsProfileMenuOpen((prev) => !prev)}
-//                   >
-//                     <span className='absolute -inset-1.5'></span>
-//                     <span className='sr-only'>Open user menu</span>
-//                     <Image
-//                       className='h-8 w-8 rounded-full'
-//                       src={profileDefault}
-//                       alt=''
-//                     />
-//                   </button>
-//                 </div>
-
-//                 {/* <!-- Profile dropdown --> */}
-//                 {isProfileMenuOpen && (
-//                   <div
-//                     id='user-menu'
-//                     className='absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none'
-//                     role='menu'
-//                     aria-orientation='vertical'
-//                     aria-labelledby='user-menu-button'
-//                     tabIndex='-1'
-//                   >
-//                     <Link
-//                       href='/profile'
-//                       className='block px-4 py-2 text-sm text-gray-700'
-//                       role='menuitem'
-//                       tabIndex='-1'
-//                       id='user-menu-item-0'
-//                     >
-//                       Your Profile
-//                     </Link>
-//                     <Link
-//                       href='/properties/saved'
-//                       className='block px-4 py-2 text-sm text-gray-700'
-//                       role='menuitem'
-//                       tabIndex='-1'
-//                       id='user-menu-item-2'
-//                     >
-//                       Saved Properties
-//                     </Link>
-//                     <button
-//                       className='block px-4 py-2 text-sm text-gray-700'
-//                       role='menuitem'
-//                       tabIndex='-1'
-//                       id='user-menu-item-2'
-//                     >
-//                       Sign Out
-//                     </button>
-//                   </div>
-//                 )}
-//               </div>
-//             </div>
-//           )}
-//         </div>
-//       </div>
-
-//       {/* <!-- Mobile menu, show/hide based on menu state. --> */}
-//       {isMobileMenuOpen && (
-//         <div id='mobile-menu'>
-//           <div className='space-y-1 px-2 pb-3 pt-2'>
-//             <Link
-//               href='/'
-//               className={`${
-//                 pathname === '/' ? 'bg-black' : ''
-//               } text-white block rounded-md px-3 py-2 text-base font-medium`}
-//             >
-//               Home
-//             </Link>
-//             <Link
-//               href='/properties'
-//               className={`${
-//                 pathname === '/properties' ? 'bg-black' : ''
-//               } text-white block rounded-md px-3 py-2 text-base font-medium`}
-//             >
-//               Properties
-//             </Link>
-//             {session && (
-//               <Link
-//                 href='/properties/add'
-//                 className={`${
-//                   pathname === '/properties/add' ? 'bg-black' : ''
-//                 } text-white block rounded-md px-3 py-2 text-base font-medium`}
-//               >
-//                 Add Property
-//               </Link>
-//             )}
-
-//             {!session && 
-              
-//               providers && Object.values(providers).map((provider,index) => (
-//                <button onClick={()=>signIn(provider.id)} key={index} className='flex items-center text-white bg-gray-700 hover:bg-gray-900 hover:text-white rounded-md px-3 py-2'>
-                  
-//                   <span>Login or Register</span>
-//                 </button>
-//                 ))}
-            
-//           </div>
-//         </div>
-//       )}
-//     </nav>
-//   );
-// };
-// export default Navbar;
-
-
-
-
-
-
-'use client';
-import { useState, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
-import Image from 'next/image';
-import Link from 'next/link';
-import logo from '../assets/images/logo-white.png';
-import profileDefault from '../assets/images/profile.png';
-import { FaGoogle } from 'react-icons/fa';
-import { signIn, signOut, useSession, getProviders } from "next-auth/react";
-import UnreadMessageCount from './UnreadMessageCount';
-
-const Navbar = () => {
+export default function Navbar() {
   const { data: session, status } = useSession();
-  const profileImage = session?.user?.image || profileDefault;
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-  const [providers, setProviders] = useState(null);
-
+  const { t } = useTranslation();
   const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const isAuthenticated = status === "authenticated" && Boolean(session?.user?.id);
+  const canAdmin = isAuthenticated && canAccessAdmin(session?.user?.permissions || []);
 
-  // Fetch providers only if user is not logged in
-  useEffect(() => {
-    if (!session) {
-      const fetchProviders = async () => {
-        const res = await getProviders();
-        setProviders(res);
-      };
-      fetchProviders();
-    }
-  }, [session]);
+  const primary = [
+    { href: "/", label: t("nav.home") },
+    { href: "/properties", label: t("nav.properties") },
+    ...(isAuthenticated ? [{ href: "/properties/add", label: t("nav.addProperty") }] : []),
+    ...(canAdmin ? [{ href: "/admin", label: t("nav.admin") }] : []),
+  ];
 
-  // Avoid UI flicker while session is loading
-  if (status === "loading") return null;
+  const profileLinks = [
+    { href: "/profile", label: t("nav.profile") },
+    { href: "/owner/import", label: "Bulk listing import" },
+    { href: "/properties/saved", label: t("nav.saved") },
+    { href: "/searches", label: "Saved searches" },
+    { href: "/properties/compare", label: "Compare properties" },
+    { href: "/properties/recently-viewed", label: "Recently viewed" },
+    { href: "/payments", label: "Payments" },
+    { href: "/organizations", label: t("nav.organizations") },
+    { href: "/bookings", label: t("nav.bookings") },
+    { href: "/rental-applications", label: t("nav.applications") },
+    { href: "/offers", label: t("nav.offers") },
+    { href: "/maintenance", label: t("nav.maintenance") },
+    { href: "/notifications", label: t("nav.notifications") },
+    { href: "/support", label: t("nav.support") },
+    { href: "/settings", label: t("nav.settings") },
+  ];
+
+  const navLink = (item, mobile = false) => (
+    <Link
+      key={item.href}
+      href={item.href}
+      onClick={() => setMobileOpen(false)}
+      className={`${
+        pathname === item.href || (item.href === "/admin" && pathname.startsWith("/admin"))
+          ? "bg-slate-950"
+          : ""
+      } rounded-md px-3 py-2 text-white hover:bg-slate-900 ${mobile ? "block text-base font-medium" : ""}`}
+    >
+      {item.label}
+    </Link>
+  );
 
   return (
-    <nav className='bg-blue-700 border-b border-blue-500'>
-      <div className='mx-auto max-w-7xl px-2 sm:px-6 lg:px-8'>
-        <div className='relative flex h-20 items-center justify-between'>
-          {/* Mobile Menu Button */}
-          <div className='absolute inset-y-0 left-0 flex items-center md:hidden'>
-            <button
-              type='button'
-              id='mobile-dropdown-button'
-              className='relative inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white'
-              aria-controls='mobile-menu'
-              aria-expanded={isMobileMenuOpen}
-              onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-            >
-              <span className='sr-only'>Open main menu</span>
-              <svg
-                className='block h-6 w-6'
-                fill='none'
-                viewBox='0 0 24 24'
-                strokeWidth='1.5'
-                stroke='currentColor'
-                aria-hidden='true'
-              >
-                <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  d='M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5'
-                />
-              </svg>
-            </button>
-          </div>
-
-          {/* Logo */}
-          <div className='flex flex-1 items-center justify-center md:items-stretch md:justify-start'>
-            <Link className='flex flex-shrink-0 items-center' href='/'>
-              <Image className='h-10 w-auto' src={logo} alt='PropertyPulse' />
-              <span className='hidden md:block text-white text-2xl font-bold ml-2'>
-                PropertyPulse
-              </span>
+    <nav className="border-b border-blue-500 bg-blue-700">
+      <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
+        <div className="relative flex h-20 items-center justify-between">
+          <button
+            type="button"
+            aria-label={t("nav.openMenu")}
+            aria-expanded={mobileOpen}
+            onClick={() => setMobileOpen((value) => !value)}
+            className="rounded-md p-2 text-white hover:bg-blue-800 md:hidden"
+          >
+            <span aria-hidden="true" className="text-2xl">☰</span>
+          </button>
+          
+          <div className="flex flex-1 items-center justify-center md:justify-start">
+            <Link href="/" className="flex shrink-0 items-center">
+              <Image className="h-10 w-auto" src={logo} alt="PropertyPulse" priority />
+              <span className="ms-2 hidden text-2xl font-bold text-white md:block">PropertyPulse</span>
             </Link>
-
-            {/* Desktop Menu */}
-            <div className='hidden md:ml-6 md:block'>
-              <div className='flex space-x-2'>
-                <Link
-                  href='/'
-                  className={`${pathname === '/' ? 'bg-black' : ''} text-white hover:bg-gray-900 rounded-md px-3 py-2`}
-                >
-                  Home
-                </Link>
-                <Link
-                  href='/properties'
-                  className={`${pathname === '/properties' ? 'bg-black' : ''} text-white hover:bg-gray-900 rounded-md px-3 py-2`}
-                >
-                  Properties
-                </Link>
-                {session && (
-                  <Link
-                    href='/properties/add'
-                    className={`${pathname === '/properties/add' ? 'bg-black' : ''} text-white hover:bg-gray-900 rounded-md px-3 py-2`}
-                  >
-                    Add Property
-                  </Link>
-                )}
-                
-              </div>
+            <div className="ms-6 hidden gap-2 md:flex">
+              {primary.map((item) => navLink(item))}
             </div>
           </div>
 
-          {/* Right Side Menu */}
-          {!session && providers && (
-            <div className='hidden md:block md:ml-6'>
-              <div className='flex items-center space-x-2'>
-                {Object.values(providers).map((provider) => (
-                  <button
-                    key={provider.name}
-                    onClick={() => signIn(provider.id)}
-                    className='flex items-center text-white bg-gray-700 hover:bg-gray-900 rounded-md px-3 py-2'
-                  >
-                    <FaGoogle className='mr-2' />
-                    <span>Login or Register</span>
-                  </button>
-                ))}
-              </div>
+          {status === "loading" && (
+            <div aria-hidden="true" className="hidden h-10 w-36 animate-pulse rounded bg-blue-600 md:block" />
+          )}
+
+          {status === "unauthenticated" && (
+            <div className="hidden items-center gap-2 md:flex">
+              <Link href="/auth/signin" className="rounded-md bg-slate-800 px-4 py-2 font-semibold text-white">
+                {t("nav.signIn")}
+              </Link>
             </div>
           )}
 
-          {session && (
-            <div className='absolute inset-y-0 right-0 flex items-center pr-2 md:static md:inset-auto md:ml-6 md:pr-0'>
-              {/* Messages */}
-              <Link href='/messages' className='relative group mr-4'>
-                <button
-                  type='button'
-                  className='relative rounded-full bg-gray-800 p-1 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800'
-                >
-                  <span className='sr-only'>View notifications</span>
-                  <svg
-                    className='h-6 w-6'
-                    fill='none'
-                    viewBox='0 0 24 24'
-                    strokeWidth='1.5'
-                    stroke='currentColor'
-                    aria-hidden='true'
-                  >
-                    <path
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      d='M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0'
-                    />
-                  </svg>
-                </button>
-                
-              <UnreadMessageCount session={session} />
+          {status === "authenticated" && session && (
+            <div className="flex items-center">
+              <Link
+                href="/messages"
+                aria-label={t("nav.messages")}
+                className="relative me-4 rounded-full bg-slate-800 p-2 text-white"
+              >
+                <span aria-hidden="true">✉</span>
+                <UnreadMessageCount session={session} />
+              </Link>
 
-           </Link>
-
-              {/* Profile dropdown */}
-              <div className='relative ml-3'>
+              <div className="relative">
                 <button
-                  type='button'
-                  className='relative flex rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800'
-                  id='user-menu-button'
-                  aria-expanded={isProfileMenuOpen}
-                  aria-haspopup='true'
-                  onClick={() => setIsProfileMenuOpen((prev) => !prev)}
+                  type="button"
+                  aria-label={t("nav.openUserMenu")}
+                  aria-expanded={profileOpen}
+                  onClick={() => setProfileOpen((value) => !value)}
+                  className="flex rounded-full ring-offset-blue-700 focus:ring-2 focus:ring-white focus:ring-offset-2"
                 >
-                  <span className='sr-only'>Open user menu</span>
-                  <Image
-                    className='h-8 w-8 rounded-full'
-                    src={profileImage || profileDefault}
-                    alt='Profile'
-                    width={32}
-                    height={32}
+                  <UserAvatar
+                    src={session.user?.image}
+                    alt={session.user?.name || "User"}
+                    className="h-9 w-9 rounded-full object-cover"
+                    width={72}
+                    height={72}
                   />
                 </button>
 
-                {isProfileMenuOpen && (
-                  <div
-                    id='user-menu'
-                    className='absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5'
-                    role='menu'
-                    aria-orientation='vertical'
-                    aria-labelledby='user-menu-button'
-                  >
-                    <Link
-                      href='/profile'
-                      className='block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'
-                      role='menuitem'
-                    >
-                      Your Profile
-                    </Link>
-                    <Link
-                      href='/properties/saved'
-                      className='block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'
-                      role='menuitem'
-                    >
-                      Saved Properties
-                    </Link>
+                {profileOpen && (
+                  <div className="absolute end-0 z-50 mt-2 max-h-[70vh] w-56 overflow-auto rounded-xl bg-white py-2 shadow-xl ring-1 ring-black/10">
+                    {profileLinks.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setProfileOpen(false)}
+                        className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
                     <button
                       onClick={() => signOut()}
-                      className='block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'
-                      role='menuitem'
+                      className="block w-full px-4 py-2 text-start text-sm text-slate-700 hover:bg-slate-100"
                     >
-                      Sign Out
+                      {t("nav.signOut")}
                     </button>
                   </div>
                 )}
@@ -471,44 +150,20 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile menu */}
-      {isMobileMenuOpen && (
-        <div id='mobile-menu' className='md:hidden'>
-          <div className='space-y-1 px-2 pb-3 pt-2'>
+      {mobileOpen && (
+        <div className="space-y-1 px-2 pb-3 md:hidden">
+          {primary.map((item) => navLink(item, true))}
+          {status === "unauthenticated" && (
             <Link
-              href='/'
-              className={`${pathname === '/' ? 'bg-black' : ''} text-white block rounded-md px-3 py-2 text-base font-medium`}
+              href="/auth/signin"
+              onClick={() => setMobileOpen(false)}
+              className="block w-full rounded-md bg-slate-800 px-3 py-2 text-start text-white"
             >
-              Home
+              {t("nav.signIn")}
             </Link>
-            <Link
-              href='/properties'
-              className={`${pathname === '/properties' ? 'bg-black' : ''} text-white block rounded-md px-3 py-2 text-base font-medium`}
-            >
-              Properties
-            </Link>
-            {session && (
-              <Link
-                href='/properties/add'
-                className={`${pathname === '/properties/add' ? 'bg-black' : ''} text-white block rounded-md px-3 py-2 text-base font-medium`}
-              >
-                Add Property
-              </Link>
-            )}
-            {!session && providers && Object.values(providers).map((provider) => (
-              <button
-                key={provider.name}
-                onClick={() => signIn(provider.id)}
-                className='w-full text-white bg-gray-700 hover:bg-gray-900 rounded-md px-3 py-2 text-left text-base font-medium'
-              >
-                Login or Register
-              </button>
-            ))}
-          </div>
+          )}
         </div>
       )}
     </nav>
   );
-};
-
-export default Navbar;
+}

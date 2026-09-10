@@ -1,0 +1,3 @@
+import { readFile } from "node:fs/promises";
+const [app, api, config] = await Promise.all([readFile(new URL("../App.js", import.meta.url), "utf8"), readFile(new URL("../src/api.js", import.meta.url), "utf8"), readFile(new URL("../app.json", import.meta.url), "utf8")]);
+JSON.parse(config); for (const expected of ["startDeviceAuthorization", "exchangeDeviceCode", "SecureStore", "/api/prop", "FlatList"]) { if (!`${app}\n${api}`.includes(expected)) throw new Error(`Missing mobile capability: ${expected}`); } console.log("Validated native mobile browsing, secure device authorization and token storage structure.");

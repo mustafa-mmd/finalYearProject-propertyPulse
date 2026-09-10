@@ -1,0 +1,86 @@
+export const LISTING_PURPOSES = Object.freeze([
+  "SHORT_TERM_RENT",
+  "LONG_TERM_RENT",
+  "SALE",
+  "COMMERCIAL_LEASE",
+  "SHARED_ACCOMMODATION",
+  "STUDENT_ACCOMMODATION",
+]);
+
+export const LISTING_CATEGORIES = Object.freeze([
+  "HOUSE",
+  "APARTMENT",
+  "CONDO",
+  "TOWNHOUSE",
+  "VILLA",
+  "ROOM",
+  "STUDIO",
+  "LAND",
+  "OFFICE",
+  "SHOP",
+  "WAREHOUSE",
+  "INDUSTRIAL",
+  "BUILDING",
+  "UNIT",
+  "OTHER",
+]);
+
+export const LISTING_STATUSES = Object.freeze([
+  "DRAFT",
+  "INCOMPLETE",
+  "PENDING_SUBMISSION",
+  "PENDING_AI_REVIEW",
+  "PENDING_MANUAL_REVIEW",
+  "CHANGES_REQUESTED",
+  "APPROVED",
+  "PUBLISHED",
+  "REJECTED",
+  "SUSPENDED",
+  "FLAGGED",
+  "EXPIRED",
+  "ARCHIVED",
+  "RENTED",
+  "SOLD",
+  "UNDER_OFFER",
+  "RESERVED",
+]);
+
+export const PUBLIC_LISTING_STATUSES = Object.freeze([
+  "PUBLISHED",
+  "UNDER_OFFER",
+  "RESERVED",
+]);
+
+export const LISTING_TRANSITIONS = Object.freeze({
+  DRAFT: ["INCOMPLETE", "PENDING_SUBMISSION", "ARCHIVED"],
+  INCOMPLETE: ["DRAFT", "PENDING_SUBMISSION", "ARCHIVED"],
+  PENDING_SUBMISSION: ["PENDING_AI_REVIEW", "PENDING_MANUAL_REVIEW", "DRAFT"],
+  PENDING_AI_REVIEW: ["PENDING_MANUAL_REVIEW", "FLAGGED", "CHANGES_REQUESTED"],
+  PENDING_MANUAL_REVIEW: ["APPROVED", "CHANGES_REQUESTED", "REJECTED", "FLAGGED"],
+  CHANGES_REQUESTED: ["DRAFT", "PENDING_SUBMISSION", "ARCHIVED"],
+  APPROVED: ["PUBLISHED", "SUSPENDED", "ARCHIVED"],
+  PUBLISHED: ["UNDER_OFFER", "RESERVED", "SUSPENDED", "EXPIRED", "ARCHIVED", "RENTED", "SOLD"],
+  UNDER_OFFER: ["PUBLISHED", "RESERVED", "SOLD", "SUSPENDED"],
+  RESERVED: ["PUBLISHED", "RENTED", "SOLD", "SUSPENDED"],
+  REJECTED: ["DRAFT", "ARCHIVED"],
+  SUSPENDED: ["PENDING_MANUAL_REVIEW", "PUBLISHED", "ARCHIVED"],
+  FLAGGED: ["PENDING_MANUAL_REVIEW", "REJECTED", "SUSPENDED"],
+  EXPIRED: ["DRAFT", "ARCHIVED"],
+  ARCHIVED: ["DRAFT"],
+  RENTED: ["PUBLISHED", "ARCHIVED"],
+  SOLD: ["ARCHIVED"],
+});
+
+export function canTransitionListing(fromStatus, toStatus) {
+  return Boolean(LISTING_TRANSITIONS[fromStatus]?.includes(toStatus));
+}
+
+export function listingPublicFilter() {
+  return {
+    $or: [
+      { listingStatus: { $in: PUBLIC_LISTING_STATUSES } },
+      { listingStatus: { $exists: false } },
+    ],
+    deletedAt: { $exists: false },
+  };
+}

@@ -1,0 +1,3 @@
+import EnterpriseWebhook from "@/models/EnterpriseWebhook";
+import WebhookDelivery from "@/models/WebhookDelivery";
+export async function queueEnterpriseWebhooks({ tenantId, eventId, eventType, payload }) { if (!tenantId) return; const endpoints = await EnterpriseWebhook.find({ tenantId, status: "ACTIVE", events: eventType }).select("_id").lean(); if (!endpoints.length) return; await WebhookDelivery.bulkWrite(endpoints.map((endpoint) => ({ updateOne: { filter: { webhookId: endpoint._id, eventId }, update: { $setOnInsert: { tenantId, webhookId: endpoint._id, eventId, eventType, payload } }, upsert: true } })), { ordered: false }); }

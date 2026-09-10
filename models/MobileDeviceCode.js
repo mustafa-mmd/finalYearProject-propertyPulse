@@ -1,0 +1,3 @@
+import { Schema, model, models } from "mongoose";
+const MobileDeviceCodeSchema = new Schema({ deviceCodeHash: { type: String, required: true, unique: true }, userCode: { type: String, required: true, unique: true, index: true }, status: { type: String, enum: ["PENDING", "APPROVED", "DENIED", "CONSUMED", "EXPIRED"], default: "PENDING", index: true }, userId: { type: Schema.Types.ObjectId, ref: "User" }, deviceName: { type: String, maxlength: 120 }, platform: { type: String, maxlength: 40 }, expiresAt: { type: Date, required: true, index: { expires: 0 } }, approvedAt: Date, consumedAt: Date }, { timestamps: true });
+const MobileDeviceCode = models.MobileDeviceCode || model("MobileDeviceCode", MobileDeviceCodeSchema); export default MobileDeviceCode;

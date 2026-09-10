@@ -1,120 +1,72 @@
-// import Image from "next/image"
-// import {Gallery,Item} from 'react-photoswipe-gallery';
-// const PropertyImages = ({images}) => {
-//   return 
-//   <Gallery>
-//   <section className="bg-blue-50 p-4">
-//     <div className="container mx-auto">
-//       {images.length===1 ? (
-
-// <Item original={images[0]}
-// thumbnail={images[0]}
-// width='1000'
-// height='600'
-// >
-// {({ref,open})=>(
-//   <Image 
-//   ref={ref}
-//   onClick={open}
-//   src={images[0]} alt=""
-//         className="object-cover h-[400px] mx-auto rounded-xl" width={1800} height={400} priority={true}/>
-// )}
-
-// </Item>
-
-        
-//       ):(
-//         <div className="grid grid-cols-2 gap-4">{images.map((image,index)=>(<div key={index}
-//         className={`${
-//           images.length===3 && index===2 ? 'col-span-2' : 'col-span-1'
-//         }`}>
-
-// <Item original={image}
-// thumbnail={image}
-// width='1000'
-// height='600'
-// >
-// {({ref,open})=>(
-//   <Image 
-//   ref={ref}
-//   onClick={open}
-//   src={images} alt=""
-//         className="object-cover h-[400px] w-full rounded-xl" width={0} height={0} sizes="100vw" priority={true}/>
-// )}
-
-// </Item>
-
-
-
-//         </div>))}
-//           </div>
-//       )}
-//     </div>
-//   </section>
-//   </Gallery>
-// }
-
-// export default PropertyImages
-
-
-
-
+"use client";
 
 import Image from "next/image";
-import { Gallery, Item } from 'react-photoswipe-gallery';
+import { Gallery, Item } from "react-photoswipe-gallery";
+import { formatPropertyImage } from "@/utils/imageHelper";
 
-const PropertyImages = ({ images }) => {
+const PropertyImages = ({ images = [] }) => {
+  const formattedImages = images.map((img) => formatPropertyImage(img));
+
+  if (!formattedImages.length) return null;
+
   return (
     <Gallery>
       <section className="bg-blue-50 p-4">
         <div className="container mx-auto">
-          {images.length === 1 ? (
+          {formattedImages.length === 1 ? (
             <Item
-              original={images[0]}
-              thumbnail={images[0]}
-              width="1000"
-              height="600"
+              original={formattedImages[0]}
+              thumbnail={formattedImages[0]}
+              width="1600"
+              height="1000"
             >
               {({ ref, open }) => (
-                <Image
-                  ref={ref}
-                  onClick={open}
-                  src={images[0]}
-                  alt="Property image"
-                  className="object-cover h-[400px] mx-auto rounded-xl"
-                  width={1800}
-                  height={400}
-                  priority={true}
-                />
+                <div className="relative h-[400px] max-w-4xl mx-auto rounded-xl overflow-hidden cursor-pointer">
+                  <Image
+                    ref={ref}
+                    onClick={open}
+                    src={formattedImages[0]}
+                    alt="Property detail photo"
+                    fill
+                    priority
+                    quality={95}
+                    unoptimized={formattedImages[0].startsWith("http")}
+                    sizes="(max-width: 1200px) 100vw, 1200px"
+                    className="object-cover w-full h-full rounded-xl hover:scale-105 transition duration-300"
+                  />
+                </div>
               )}
             </Item>
           ) : (
-            <div className="grid grid-cols-2 gap-4">
-              {images.map((image, index) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {formattedImages.map((image, index) => (
                 <div
                   key={index}
                   className={`${
-                    images.length === 3 && index === 2 ? 'col-span-2' : 'col-span-1'
+                    formattedImages.length === 3 && index === 2 ? "md:col-span-2" : "col-span-1"
                   }`}
                 >
                   <Item
                     original={image}
                     thumbnail={image}
-                    width="1000"
-                    height="600"
+                    width="1600"
+                    height="1000"
                   >
                     {({ ref, open }) => (
-                      <Image
-                        ref={ref}
-                        onClick={open}
-                        src={image}  // ✅ FIXED: was `images`, now `image`
-                        alt={`Property image ${index + 1}`}
-                        className="object-cover h-[400px] w-full rounded-xl"
-                        width={600}
-                        height={400}
-                        sizes="(max-width: 768px) 100vw, 50vw"
-                        priority={index === 0} // Only prioritize first image
-                      />
+                      <div className="relative h-[360px] w-full rounded-xl overflow-hidden cursor-pointer">
+                        <Image
+                          ref={ref}
+                          onClick={open}
+                          src={image}
+                          alt={`Property photo ${index + 1}`}
+                          fill
+                          quality={95}
+                          unoptimized={image.startsWith("http")}
+                          priority={index === 0}
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                          className="object-cover w-full h-full rounded-xl hover:scale-105 transition duration-300"
+                        />
+                      </div>
                     )}
                   </Item>
                 </div>

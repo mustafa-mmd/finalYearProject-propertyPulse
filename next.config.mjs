@@ -1,32 +1,19 @@
-// /** @type {import('next').NextConfig} */
-// const nextConfig = {
-//   images:{
-//     remotePatterns:[
-//       {
-//         protocol:'https',
-//         hostname:'lh3.googleusercontent.com',
-//         pathname:'**',
-//       },
-//       {
-//         protocol:'https',
-//         hostname:'res.cloudinary.com',
-//         pathname:'**',
-//       },
-//     ],
-//   },
-// };
-
-// export default nextConfig;
-
-
-
-
-//oper wala sahee hay bina diable console wala hay
-
-import path from "path";
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  poweredByHeader: false,
+  // Keep Windows development/CI builds within predictable process limits.
+  experimental: { cpus: 2 },
+  async headers() {
+    const securityHeaders = [
+      { key: "X-Content-Type-Options", value: "nosniff" },
+      { key: "X-Frame-Options", value: "DENY" },
+      { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+      { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(self), payment=(self)" },
+      { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
+    ];
+    if (process.env.NODE_ENV === "production") securityHeaders.push({ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" });
+    return [{ source: "/:path*", headers: securityHeaders }];
+  },
   images: {
     remotePatterns: [
       {
@@ -41,84 +28,12 @@ const nextConfig = {
       },
     ],
   },
-
-  webpack: (config) => {
-    const disablePath = path.resolve("./utils/disableConsole.js");
-
-    //  original entry ko save karo
-    const originalEntry = config.entry;
-
-    config.entry = async () => {
-      const entries =
-        typeof originalEntry === "function"
-          ? await originalEntry()
-          : originalEntry;
-
-      if (
-        entries["main-app"] &&
-        !entries["main-app"].includes(disablePath)
-      ) {
-        entries["main-app"].unshift(disablePath);
-      }
-
-      return entries;
-    };
-
-    return config;
+  compiler: {
+    removeConsole:
+      process.env.NODE_ENV === "production"
+        ? { exclude: ["error", "warn"] }
+        : false,
   },
 };
 
 export default nextConfig;
-
-
-
-// // for production just disable console log and debug
-// import path from "path";
-
-// /** @type {import('next').NextConfig} */
-// const nextConfig = {
-//   images: {
-//     remotePatterns: [
-//       {
-//         protocol: "https",
-//         hostname: "lh3.googleusercontent.com",
-//         pathname: "**",
-//       },
-//       {
-//         protocol: "https",
-//         hostname: "res.cloudinary.com",
-//         pathname: "**",
-//       },
-//     ],
-//   },
-
-//   webpack: (config) => {
-//     const disablePath = path.resolve("./utils/disableConsole.js");
-
-//     // Save original entry
-//     const originalEntry = config.entry;
-
-//     config.entry = async () => {
-//       const entries =
-//         typeof originalEntry === "function"
-//           ? await originalEntry()
-//           : originalEntry;
-
-//       // ✅ Only apply in production
-//       if (process.env.NODE_ENV === "production") {
-//         if (
-//           entries["main-app"] &&
-//           !entries["main-app"].includes(disablePath)
-//         ) {
-//           entries["main-app"].unshift(disablePath);
-//         }
-//       }
-
-//       return entries;
-//     };
-
-//     return config;
-//   },
-// };
-
-// export default nextConfig;

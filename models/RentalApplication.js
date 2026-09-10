@@ -1,0 +1,6 @@
+import { Schema, model, models } from "mongoose";
+import { APPLICATION_STATUSES } from "@/config/commerce";
+const RentalApplicationSchema = new Schema({ tenantId: { type: Schema.Types.ObjectId, ref: "Organization", index: true }, propertyId: { type: Schema.Types.ObjectId, ref: "Property", required: true, index: true }, applicantId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true }, ownerId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true }, status: { type: String, enum: APPLICATION_STATUSES, default: "SUBMITTED", index: true }, desiredMoveIn: { type: Date, required: true }, occupants: { type: Number, min: 1, max: 30, required: true }, monthlyIncome: { type: Number, min: 0 }, employmentStatus: { type: String, maxlength: 100 }, message: { type: String, maxlength: 2000 }, consent: { creditCheck: { type: Boolean, default: false }, privacyPolicy: { type: Boolean, required: true } }, decision: { reason: { type: String, maxlength: 1000 }, decidedBy: { type: Schema.Types.ObjectId, ref: "User" }, decidedAt: Date }, deletedAt: Date }, { timestamps: true });
+RentalApplicationSchema.index({ propertyId: 1, applicantId: 1, status: 1 });
+const RentalApplication = models.RentalApplication || model("RentalApplication", RentalApplicationSchema);
+export default RentalApplication;

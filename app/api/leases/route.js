@@ -1,0 +1,3 @@
+import connectDB from "@/config/database"; import Lease from "@/models/Lease"; import { requireActor } from "@/utils/authorization"; import { apiSuccess, handleApiError } from "@/utils/apiResponse";
+export const dynamic = "force-dynamic";
+export async function GET() { try { const actor = await requireActor(); await connectDB(); const items = await Lease.find({ $or: [{ landlordId: actor.id }, { tenantUserIds: actor.id }], deletedAt: { $exists: false } }).populate("propertyId", "name listingReference location images").populate("tenantUserIds", "name email").sort({ createdAt: -1 }).lean(); return apiSuccess({ items }); } catch (error) { return handleApiError(error, "leases.list"); } }

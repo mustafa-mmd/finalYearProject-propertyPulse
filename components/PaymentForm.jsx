@@ -1,324 +1,196 @@
+"use client";
 
+import { useMemo, useState } from "react";
 
-// 'use client';
-// import { useState } from "react";
+const PAYMENT_LABELS = {
+  nightly: "Nightly",
+  weekly: "Weekly",
+  monthly: "Monthly",
+};
 
-// export default function PaymentForm({ propertyId, nightly, weekly, monthly }) {
-//   const [amount, setAmount] = useState(null);
-//   const [loading, setLoading] = useState(false);
-
-//   // ✅ Parse and validate the values
-//   const nightlyRate = nightly && nightly !== "null" && nightly !== "undefined" && nightly !== "" ? parseFloat(nightly) : null;
-//   const weeklyRate = weekly && weekly !== "null" && weekly !== "undefined" && weekly !== "" ? parseFloat(weekly) : null;
-//   const monthlyRate = monthly && monthly !== "null" && monthly !== "undefined" && monthly !== "" ? parseFloat(monthly) : null;
-
-//   const handlePayment = async (selectedAmount, type) => {
-//     setAmount(selectedAmount);
-//     setLoading(true);
-
-//     try {
-//       const res = await fetch("/api/payment/pay", {
-//         method: "POST",
-//         headers: { "Content-Type": "application/json" },
-//         body: JSON.stringify({ 
-//           propertyId, 
-//           amount: selectedAmount,
-//           type,
-//           nightly: nightlyRate,
-//           weekly: weeklyRate,
-//           monthly: monthlyRate
-//         }),
-//       });
-
-//       const data = await res.json();
-//       if (data.redirectUrl) {
-//         window.location.href = data.redirectUrl; // Redirect to PayFast
-//       }
-//     } catch (err) {
-//       console.error("Payment error:", err);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   return (
-//     <div className="space-y-6 max-w-md mx-auto bg-white shadow-lg rounded-xl p-6">
-//       <h2 className="text-xl font-bold text-gray-800 text-center mb-4">
-//         Choose Rent Option
-//       </h2>
-
-//       <div className="space-y-3">
-//         {nightlyRate && (
-//           <button
-//             onClick={() => handlePayment(nightlyRate, "nightly")}
-//             disabled={loading}
-//             className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg shadow-md hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-//           >
-//             {loading && amount === nightlyRate ? "Processing..." : `Pay Nightly Rent - $${nightlyRate}`}
-//           </button>
-//         )}
-
-//         {weeklyRate && (
-//           <button
-//             onClick={() => handlePayment(weeklyRate, "weekly")}
-//             disabled={loading}
-//             className="w-full bg-green-600 text-white px-6 py-3 rounded-lg shadow-md hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-//           >
-//             {loading && amount === weeklyRate ? "Processing..." : `Pay Weekly Rent - $${weeklyRate}`}
-//           </button>
-//         )}
-
-//         {monthlyRate && (
-//           <button
-//             onClick={() => handlePayment(monthlyRate, "monthly")}
-//             disabled={loading}
-//             className="w-full bg-purple-600 text-white px-6 py-3 rounded-lg shadow-md hover:bg-purple-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-//           >
-//             {loading && amount === monthlyRate ? "Processing..." : `Pay Monthly Rent - $${monthlyRate}`}
-//           </button>
-//         )}
-//       </div>
-
-//       {/* ⚠️ Show warning if no rates available */}
-//       {!nightlyRate && !weeklyRate && !monthlyRate && (
-//         <div className="text-center text-red-600 font-semibold p-4 bg-red-50 rounded-lg">
-//           ⚠️ No payment options available for this property.
-//         </div>
-//       )}
-//     </div>
-//   );
-// }
-
-
-
-
-'use client';
-import { useState } from "react";
-
-export default function PaymentForm({ propertyId, nightly, weekly, monthly }) {
-  const [amount, setAmount] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [showUserForm, setShowUserForm] = useState(false);
+export default function PaymentForm({ propertyId, rates, currency = "ZAR" }) {
   const [selectedType, setSelectedType] = useState(null);
-  const [selectedAmount, setSelectedAmount] = useState(null);
-  
   const [formData, setFormData] = useState({
     userName: "",
     userEmail: "",
     userPhone: "",
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  // ✅ Parse and validate the values
-  const nightlyRate = nightly && nightly !== "null" && nightly !== "undefined" && nightly !== "" ? parseFloat(nightly) : null;
-  const weeklyRate = weekly && weekly !== "null" && weekly !== "undefined" && weekly !== "" ? parseFloat(weekly) : null;
-  const monthlyRate = monthly && monthly !== "null" && monthly !== "undefined" && monthly !== "" ? parseFloat(monthly) : null;
+  const availableRates = useMemo(
+    () =>
+      Object.entries(PAYMENT_LABELS)
+        .map(([type, label]) => ({ type, label, amount: Number(rates?.[type]) }))
+        .filter(({ amount }) => Number.isFinite(amount) && amount > 0),
+    [rates]
+  );
 
-  const handleSelectPayment = (rate, type) => {
-    setSelectedAmount(rate);
-    setSelectedType(type);
-    setShowUserForm(true);
-  };
+  const money = useMemo(
+    () =>
+      new Intl.NumberFormat("en-ZA", {
+        style: "currency",
+        currency,
+        maximumFractionDigits: 2,
+      }),
+    [currency]
+  );
 
-  const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const selectedRate = availableRates.find(({ type }) => type === selectedType);
 
-  const handleBack = () => {
-    setShowUserForm(false);
-    setSelectedAmount(null);
-    setSelectedType(null);
-  };
+  function updateField(event) {
+    const { name, value } = event.target;
+    setFormData((current) => ({ ...current, [name]: value }));
+  }
 
-  const handlePayment = async (e) => {
-    e.preventDefault();
-    setAmount(selectedAmount);
+  async function handlePayment(event) {
+    event.preventDefault();
+    if (!selectedType || loading) return;
+
     setLoading(true);
+    setError("");
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 12_000);
 
     try {
-      const res = await fetch("/api/payment/pay", {
+      const response = await fetch("/api/payment/pay", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          propertyId, 
-          amount: selectedAmount,
-          type: selectedType,
-          nightly: nightlyRate,
-          weekly: weeklyRate,
-          monthly: monthlyRate,
-          userName: formData.userName,
-          userEmail: formData.userEmail,
-          userPhone: formData.userPhone,
-        }),
+        body: JSON.stringify({ propertyId, type: selectedType, ...formData }),
+        signal: controller.signal,
       });
+      const data = await response.json();
 
-      const text = await res.text();
-      console.log("API Response:", text);
-      
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch (e) {
-        console.error("Failed to parse JSON:", e);
-        alert("Server error. Please check console and try again.");
-        return;
+      if (!response.ok || !data.redirectUrl) {
+        throw new Error(data.error || "Payment could not be started");
       }
 
-      if (res.ok && data.redirectUrl) {
-        window.location.href = data.redirectUrl; // Redirect to PayFast
-      } else {
-        alert(`Payment failed: ${data.error || data.details || "Unknown error"}`);
-        console.error("Payment error:", data);
-      }
-    } catch (err) {
-      console.error("Payment error:", err);
-      alert("An error occurred. Please try again.");
+      window.location.assign(data.redirectUrl);
+    } catch (requestError) {
+      setError(
+        requestError?.name === "AbortError"
+          ? "The payment service took too long to respond. Please try again."
+          : requestError?.message || "Payment could not be started. Please try again."
+      );
     } finally {
+      clearTimeout(timeout);
       setLoading(false);
     }
-  };
+  }
 
   return (
-    <div className="space-y-6 max-w-md mx-auto bg-white shadow-lg rounded-xl p-6">
-      {!showUserForm ? (
+    <section className="mx-auto max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-xl">
+      {!selectedRate ? (
         <>
-          <h2 className="text-xl font-bold text-gray-800 text-center mb-4">
-            Choose Rent Option
+          <h2 className="text-center text-xl font-bold text-gray-900">
+            Choose a rent period
           </h2>
-
-          <div className="space-y-3">
-            {nightlyRate && (
+          <div className="mt-6 space-y-3">
+            {availableRates.map(({ type, label, amount }) => (
               <button
-                onClick={() => handleSelectPayment(nightlyRate, "nightly")}
-                disabled={loading}
-                className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg shadow-md hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                key={type}
+                type="button"
+                onClick={() => setSelectedType(type)}
+                className="flex w-full items-center justify-between rounded-xl border border-gray-200 px-5 py-4 text-left transition hover:border-blue-500 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                Pay Nightly Rent - ${nightlyRate}
+                <span className="font-semibold text-gray-800">{label} rent</span>
+                <span className="font-bold text-blue-700">{money.format(amount)}</span>
               </button>
-            )}
-
-            {weeklyRate && (
-              <button
-                onClick={() => handleSelectPayment(weeklyRate, "weekly")}
-                disabled={loading}
-                className="w-full bg-green-600 text-white px-6 py-3 rounded-lg shadow-md hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Pay Weekly Rent - ${weeklyRate}
-              </button>
-            )}
-
-            {monthlyRate && (
-              <button
-                onClick={() => handleSelectPayment(monthlyRate, "monthly")}
-                disabled={loading}
-                className="w-full bg-purple-600 text-white px-6 py-3 rounded-lg shadow-md hover:bg-purple-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Pay Monthly Rent - ${monthlyRate}
-              </button>
-            )}
+            ))}
           </div>
 
-          {/* ⚠️ Show warning if no rates available */}
-          {!nightlyRate && !weeklyRate && !monthlyRate && (
-            <div className="text-center text-red-600 font-semibold p-4 bg-red-50 rounded-lg">
-              ⚠️ No payment options available for this property.
-            </div>
+          {!availableRates.length && (
+            <p className="mt-5 rounded-lg bg-amber-50 p-4 text-center text-sm font-medium text-amber-800">
+              No payment options are currently available for this property.
+            </p>
           )}
         </>
       ) : (
         <>
-          <div className="flex items-center justify-between mb-4">
-            <button
-              onClick={handleBack}
-              className="text-gray-600 hover:text-gray-800 flex items-center gap-2"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
-              </svg>
-              Back
-            </button>
-            <h2 className="text-xl font-bold text-gray-800">
-              Your Details
-            </h2>
-          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedType(null);
+              setError("");
+            }}
+            disabled={loading}
+            className="text-sm font-semibold text-gray-600 hover:text-gray-900 disabled:opacity-50"
+          >
+            ← Change rent period
+          </button>
 
-          <div className="bg-blue-50 p-4 rounded-lg mb-4">
-            <p className="text-sm text-gray-700">
-              <span className="font-semibold">Selected:</span> {selectedType} Rent
+          <div className="mt-4 rounded-xl bg-blue-50 p-4">
+            <p className="text-sm text-gray-600">{selectedRate.label} rent</p>
+            <p className="mt-1 text-2xl font-bold text-blue-700">
+              {money.format(selectedRate.amount)}
             </p>
-            <p className="text-2xl font-bold text-blue-600 mt-1">
-              ${selectedAmount}
+            <p className="mt-1 text-xs text-gray-500">
+              The final amount is verified from the property record on the server.
             </p>
           </div>
 
-          <form onSubmit={handlePayment} className="space-y-4">
-            <div>
-              <label className="block text-gray-700 font-medium mb-2">
-                Full Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="userName"
-                value={formData.userName}
-                onChange={handleInputChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="John Doe"
-              />
-            </div>
+          <form onSubmit={handlePayment} className="mt-5 space-y-4">
+            <Field
+              label="Full name"
+              name="userName"
+              value={formData.userName}
+              onChange={updateField}
+              autoComplete="name"
+              maxLength={100}
+              required
+            />
+            <Field
+              label="Email address"
+              name="userEmail"
+              type="email"
+              value={formData.userEmail}
+              onChange={updateField}
+              autoComplete="email"
+              maxLength={254}
+              required
+            />
+            <Field
+              label="Phone number (optional)"
+              name="userPhone"
+              type="tel"
+              value={formData.userPhone}
+              onChange={updateField}
+              autoComplete="tel"
+              maxLength={30}
+            />
 
-            <div>
-              <label className="block text-gray-700 font-medium mb-2">
-                Email Address <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="email"
-                name="userEmail"
-                value={formData.userEmail}
-                onChange={handleInputChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="john@example.com"
-              />
-            </div>
-
-            <div>
-              <label className="block text-gray-700 font-medium mb-2">
-                Phone Number (Optional)
-              </label>
-              <input
-                type="tel"
-                name="userPhone"
-                value={formData.userPhone}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="+1 234 567 8900"
-              />
-            </div>
+            {error && (
+              <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
+                {error}
+              </p>
+            )}
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-lg shadow-md hover:from-blue-700 hover:to-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+              className="w-full rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white shadow hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Processing...
-                </span>
-              ) : (
-                "Proceed to Payment"
-              )}
+              {loading ? "Connecting to PayFast…" : "Continue to secure payment"}
             </button>
           </form>
 
-          <p className="text-xs text-gray-500 text-center mt-4">
-            🔒 Your payment is secured by PayFast
+          <p className="mt-4 text-center text-xs text-gray-500">
+            Payment is processed securely by PayFast in South African rand (ZAR).
           </p>
         </>
       )}
-    </div>
+    </section>
+  );
+}
+
+function Field({ label, ...inputProps }) {
+  return (
+    <label className="block text-sm font-medium text-gray-700">
+      {label}
+      <input
+        {...inputProps}
+        className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+      />
+    </label>
   );
 }

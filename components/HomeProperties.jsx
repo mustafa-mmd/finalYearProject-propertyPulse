@@ -50,12 +50,12 @@
 
 import Link from "next/link";
 import PropertyCard from "./PropertyCard";
-import { getProperties } from "../utils/requests";
+import { queryProperties } from "@/utils/propertyQueries";
 import { FaHome, FaClock, FaArrowRight } from "react-icons/fa";
 
 const HomeProperties = async () => {
   try {
-    const data = await getProperties();
+    const data = await queryProperties();
     
     if (!data?.properties?.length) {
       return (
@@ -166,7 +166,7 @@ const HomeProperties = async () => {
               Temporary Unavailable
             </h2>
             <p className="text-gray-600 mb-4">
-              We're experiencing high demand. Please check back in a few moments.
+              We&apos;re experiencing high demand. Please check back in a few moments.
             </p>
             <button 
               onClick={() => window.location.reload()}

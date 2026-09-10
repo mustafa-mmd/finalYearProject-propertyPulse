@@ -1,0 +1,5 @@
+"use client";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+const NEXT = { OPEN: "TRIAGED", TRIAGED: "IN_PROGRESS", ASSIGNED: "IN_PROGRESS", IN_PROGRESS: "RESOLVED", ON_HOLD: "IN_PROGRESS", RESOLVED: "CLOSED" };
+export default function MaintenanceStatusAction({ id, status }) { const router = useRouter(); const [busy, setBusy] = useState(false); const [error, setError] = useState(""); const next = NEXT[status]; if (!next) return null; async function update() { setBusy(true); setError(""); const response = await fetch("/api/maintenance", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ maintenanceRequestId: id, status: next }) }); const payload = await response.json(); if (!response.ok) { setError(payload.error?.message || "Could not update request"); setBusy(false); return; } router.refresh(); } return <div className="text-right"><button disabled={busy} onClick={update} className="text-xs font-bold text-blue-700 disabled:opacity-50">{busy ? "Updating..." : `Move to ${next.replaceAll("_", " ")}`}</button>{error && <p className="mt-1 max-w-48 text-xs text-red-700">{error}</p>}</div>; }

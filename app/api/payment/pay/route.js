@@ -1,222 +1,431 @@
-// import crypto from "crypto";
-
-// export async function POST(req) {
-//   try {
-//     const {
-//       PAYFAST_MERCHANT_ID,
-//       PAYFAST_MERCHANT_KEY,
-//       PAYFAST_PASSPHRASE,
-//       PAYFAST_RETURN_URL,
-//       PAYFAST_CANCEL_URL,
-//       PAYFAST_NOTIFY_URL,
-//       PAYFAST_URL,
-//     } = process.env;
-
-//     // 🔹 Extract values from request body
-//     const { amount, propertyId, type, nightly, weekly, monthly } = await req.json();
-
-//     const formattedAmount = parseFloat(amount).toFixed(2);
-
-//     // 🔹 Build dynamic return & cancel URLs
-//     const returnUrl = `${PAYFAST_RETURN_URL}?type=${type}&amount=${formattedAmount}&propertyId=${propertyId}&nightly=${nightly || ""}&weekly=${weekly || ""}&monthly=${monthly || ""}`;
-//     const cancelUrl = `${PAYFAST_CANCEL_URL}?type=${type}&amount=${formattedAmount}&propertyId=${propertyId}&nightly=${nightly || ""}&weekly=${weekly || ""}&monthly=${monthly || ""}`;
-
-//     // 🔹 Payment data object
-//     let paymentData = {
-//       merchant_id: PAYFAST_MERCHANT_ID,
-//       merchant_key: PAYFAST_MERCHANT_KEY,
-//       return_url: returnUrl,
-//       cancel_url: cancelUrl,
-//       notify_url: PAYFAST_NOTIFY_URL,
-//       m_payment_id: `property-${propertyId}-${Date.now()}`,
-//       amount: formattedAmount,
-//       item_name: `Property Payment - ${propertyId}`,
-//     };
-
-//     // 1️⃣ Build query string in strict format
-//     const queryString = Object.entries(paymentData)
-//       .map(([key, value]) => `${key}=${encodeURIComponent(value).replace(/%20/g, "+")}`)
-//       .join("&");
-
-//     // 2️⃣ Add passphrase at the END before hashing
-//     const stringToHash = PAYFAST_PASSPHRASE
-//       ? `${queryString}&passphrase=${encodeURIComponent(PAYFAST_PASSPHRASE).replace(/%20/g, "+")}`
-//       : queryString;
-
-//     // 3️⃣ Generate MD5 signature
-//     const signature = crypto.createHash("md5").update(stringToHash).digest("hex");
-
-//     // 4️⃣ Attach signature to paymentData
-//     paymentData.signature = signature;
-
-//     // 5️⃣ Final redirect URL
-//     const redirectUrl = `${PAYFAST_URL}?${new URLSearchParams(paymentData).toString()}`;
-
-//     return new Response(JSON.stringify({ redirectUrl }), {
-//       status: 200,
-//       headers: { "Content-Type": "application/json" },
-//     });
-//   } catch (err) {
-//     console.error("PayFast init error:", err);
-//     return new Response(JSON.stringify({ error: "Payment failed" }), {
-//       status: 500,
-//       headers: { "Content-Type": "application/json" },
-//     });
-//   }
-// }
-
-
-
-
-
-
-
 import crypto from "crypto";
+import mongoose from "mongoose";
 import connectDB from "@/config/database";
 import Payment from "@/models/Payment";
-import Property from "@/models/property";
+import Property from "@/models/Property";
+import { buildLocationLabel, normalizeLocation } from "@/utils/location";
+import {
+  createPayfastSignature,
+  getPayfastConfig,
+  getTrustedPropertyRate,
+  PAYFAST_CURRENCY,
+  PAYMENT_TYPES,
+  validateCustomer,
+} from "@/utils/payfast";
+import { checkRateLimit, getClientIp } from "@/utils/rateLimit";
+import { requireActor } from "@/utils/authorization";
 
-export async function POST(req) {
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+function json(body, status = 200, headers = {}) {
+  return Response.json(body, {
+    status,
+    headers: { "Cache-Control": "no-store", ...headers },
+  });
+}
+
+export async function POST(request) {
+  const rateLimit = await checkRateLimit(`payment:${getClientIp(request)}`, {
+    limit: 10,
+    windowMs: 5 * 60 * 1000,
+  });
+
+  if (!rateLimit.allowed) {
+    return json(
+      { error: "Too many payment attempts. Please try again shortly." },
+      429,
+      { "Retry-After": String(rateLimit.retryAfter) }
+    );
+  }
+
   try {
-    console.log("🔵 Payment API called");
-    
+    const actor = await requireActor();
+    const contentLength = Number(request.headers.get("content-length") || 0);
+    if (contentLength > 20_000) {
+      return json({ error: "Request is too large" }, 413);
+    }
+
+    const body = await request.json();
     await connectDB();
-    console.log("✅ Database connected");
 
-    const {
-      PAYFAST_MERCHANT_ID,
-      PAYFAST_MERCHANT_KEY,
-      PAYFAST_PASSPHRASE,
-      PAYFAST_RETURN_URL,
-      PAYFAST_CANCEL_URL,
-      PAYFAST_NOTIFY_URL,
-      PAYFAST_URL,
-    } = process.env;
+    // ── Handle existing Booking payment ──
+    if (body.bookingId) {
+      if (!mongoose.isValidObjectId(body.bookingId)) {
+        return json({ error: "Invalid booking ID" }, 400);
+      }
+      const Booking = (await import("@/models/Booking")).default;
+      const booking = await Booking.findById(body.bookingId).populate("propertyId").lean();
+      if (!booking) return json({ error: "Booking not found" }, 404);
+      if (booking.guestId.toString() !== actor.id) {
+        return json({ error: "You can only pay for your own bookings" }, 403);
+      }
 
-    const { 
-      amount, 
-      propertyId, 
-      type, 
-      nightly, 
-      weekly, 
-      monthly,
-      userName,
-      userEmail,
-      userPhone 
-    } = await req.json();
+      const propertyObj = booking.propertyId || {};
+      const propertyName = propertyObj.name || "Property Stay";
+      const amount = Number(booking.total);
+      const currency = booking.currency || "ZAR";
+      const transactionId = crypto.randomUUID();
+      const paymentId = `booking-${booking._id}-${crypto.randomUUID()}`;
 
-    console.log("📥 Received data:", { amount, propertyId, type, userName, userEmail });
+      await Payment.create({
+        transactionId,
+        userId: actor.id,
+        paymentId,
+        provider: "stripe",
+        userName: actor.name || "Guest",
+        userEmail: actor.email,
+        userPhone: body.userPhone || "",
+        propertyId: propertyObj._id || booking.propertyId,
+        propertyName,
+        amount,
+        currency,
+        paymentType: "nightly",
+        paymentStatus: "pending",
+        bookingStartDate: booking.checkIn,
+        bookingEndDate: booking.checkOut,
+        statusHistory: [{ status: "pending", source: "checkout", reference: paymentId }],
+      });
 
-    if (!propertyId || !amount || !type || !userName || !userEmail) {
-      return new Response(
-        JSON.stringify({ error: "Missing required fields" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
+      if (process.env.STRIPE_SECRET_KEY) {
+        const stripeModule = await import("@/config/stripe");
+        const stripe = stripeModule.default;
+        const origin = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_DOMAIN || "http://localhost:3000";
+
+        const session = await stripe.checkout.sessions.create({
+          mode: "payment",
+          payment_method_types: ["card"],
+          customer_email: actor.email,
+          line_items: [
+            {
+              quantity: 1,
+              price_data: {
+                currency: currency.toLowerCase(),
+                unit_amount: Math.round(amount * 100),
+                product_data: {
+                  name: `${propertyName} - Stay Reservation (${booking.nights} night${booking.nights > 1 ? "s" : ""})`,
+                  description: `Stay reservation at ${propertyName}`,
+                },
+              },
+            },
+          ],
+          metadata: {
+            transactionId,
+            paymentId,
+            bookingId: booking._id.toString(),
+            propertyId: (propertyObj._id || booking.propertyId).toString(),
+            userId: actor.id,
+            paymentType: "booking",
+          },
+          success_url: `${origin}/payment/success?tid=${transactionId}&session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${origin}/bookings`,
+        });
+
+        await Payment.updateOne({ transactionId }, { provider: "stripe" });
+        return json({ redirectUrl: session.url, transactionId, provider: "stripe" });
+      }
+
+      const origin = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_DOMAIN || "http://localhost:3000";
+      await Payment.updateOne({ transactionId }, { paymentStatus: "completed", paidAt: new Date(), provider: "demo" });
+      return json({ redirectUrl: `${origin}/payment/success?tid=${transactionId}`, transactionId, provider: "demo" });
     }
 
-    const property = await Property.findById(propertyId);
-    
-    if (!property) {
-      return new Response(
-        JSON.stringify({ error: "Property not found" }),
-        { status: 404, headers: { "Content-Type": "application/json" } }
-      );
+    // ── Handle purchase Offer Earnest Deposit payment ──
+    if (body.offerId) {
+      if (!mongoose.isValidObjectId(body.offerId)) {
+        return json({ error: "Invalid offer ID" }, 400);
+      }
+      const Offer = (await import("@/models/Offer")).default;
+      const offer = await Offer.findById(body.offerId).populate("propertyId").lean();
+      if (!offer) return json({ error: "Offer not found" }, 404);
+
+      const propertyObj = offer.propertyId || {};
+      const propertyName = propertyObj.name || "Property Purchase";
+      const amount = Number(offer.depositAmount > 0 ? offer.depositAmount : offer.amount);
+      const currency = offer.currency || "ZAR";
+      const transactionId = crypto.randomUUID();
+      const paymentId = `offer-${offer._id}-${crypto.randomUUID()}`;
+
+      await Payment.create({
+        transactionId,
+        userId: actor.id,
+        paymentId,
+        provider: "stripe",
+        userName: actor.name || "Buyer",
+        userEmail: actor.email,
+        userPhone: body.userPhone || "",
+        propertyId: propertyObj._id || offer.propertyId,
+        propertyName,
+        amount,
+        currency,
+        paymentType: "monthly",
+        paymentStatus: "pending",
+        statusHistory: [{ status: "pending", source: "checkout", reference: paymentId }],
+      });
+
+      if (process.env.STRIPE_SECRET_KEY) {
+        const stripeModule = await import("@/config/stripe");
+        const stripe = stripeModule.default;
+        const origin = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_DOMAIN || "http://localhost:3000";
+
+        const session = await stripe.checkout.sessions.create({
+          mode: "payment",
+          payment_method_types: ["card"],
+          customer_email: actor.email,
+          line_items: [
+            {
+              quantity: 1,
+              price_data: {
+                currency: currency.toLowerCase(),
+                unit_amount: Math.round(amount * 100),
+                product_data: {
+                  name: `${propertyName} - Earnest Deposit`,
+                  description: `Earnest deposit for property purchase offer`,
+                },
+              },
+            },
+          ],
+          metadata: {
+            transactionId,
+            paymentId,
+            offerId: offer._id.toString(),
+            propertyId: (propertyObj._id || offer.propertyId).toString(),
+            userId: actor.id,
+            paymentType: "offer_deposit",
+          },
+          success_url: `${origin}/payment/success?tid=${transactionId}&session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${origin}/offers`,
+        });
+
+        await Payment.updateOne({ transactionId }, { provider: "stripe" });
+        return json({ redirectUrl: session.url, transactionId, provider: "stripe" });
+      }
+
+      const origin = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_DOMAIN || "http://localhost:3000";
+      await Payment.updateOne({ transactionId }, { paymentStatus: "completed", paidAt: new Date(), provider: "demo" });
+      return json({ redirectUrl: `${origin}/payment/success?tid=${transactionId}`, transactionId, provider: "demo" });
     }
 
-    const formattedAmount = parseFloat(amount).toFixed(2);
-    const transactionId = `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    const paymentId = `property-${propertyId}-${Date.now()}`;
+    // ── Handle Rental Application Holding Deposit payment ──
+    if (body.applicationId) {
+      if (!mongoose.isValidObjectId(body.applicationId)) {
+        return json({ error: "Invalid application ID" }, 400);
+      }
+      const RentalApplication = (await import("@/models/RentalApplication")).default;
+      const application = await RentalApplication.findById(body.applicationId).populate("propertyId").lean();
+      if (!application) return json({ error: "Application not found" }, 404);
 
-    const newPayment = await Payment.create({
+      const propertyObj = application.propertyId || {};
+      const propertyName = propertyObj.name || "Rental Property";
+      const amount = Number(propertyObj.pricing?.monthlyRent || propertyObj.rates?.monthly || propertyObj.rates?.nightly || 1000);
+      const currency = propertyObj.currency || "ZAR";
+      const transactionId = crypto.randomUUID();
+      const paymentId = `app-${application._id}-${crypto.randomUUID()}`;
+
+      await Payment.create({
+        transactionId,
+        userId: actor.id,
+        paymentId,
+        provider: "stripe",
+        userName: actor.name || "Applicant",
+        userEmail: actor.email,
+        userPhone: body.userPhone || "",
+        propertyId: propertyObj._id || application.propertyId,
+        propertyName,
+        amount,
+        currency,
+        paymentType: "monthly",
+        paymentStatus: "pending",
+        statusHistory: [{ status: "pending", source: "checkout", reference: paymentId }],
+      });
+
+      if (process.env.STRIPE_SECRET_KEY) {
+        const stripeModule = await import("@/config/stripe");
+        const stripe = stripeModule.default;
+        const origin = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_DOMAIN || "http://localhost:3000";
+
+        const session = await stripe.checkout.sessions.create({
+          mode: "payment",
+          payment_method_types: ["card"],
+          customer_email: actor.email,
+          line_items: [
+            {
+              quantity: 1,
+              price_data: {
+                currency: currency.toLowerCase(),
+                unit_amount: Math.round(amount * 100),
+                product_data: {
+                  name: `${propertyName} - Holding Deposit`,
+                  description: `Holding deposit for rental application at ${propertyName}`,
+                },
+              },
+            },
+          ],
+          metadata: {
+            transactionId,
+            paymentId,
+            applicationId: application._id.toString(),
+            propertyId: (propertyObj._id || application.propertyId).toString(),
+            userId: actor.id,
+            paymentType: "holding_deposit",
+          },
+          success_url: `${origin}/payment/success?tid=${transactionId}&session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${origin}/rental-applications`,
+        });
+
+        await Payment.updateOne({ transactionId }, { provider: "stripe" });
+        return json({ redirectUrl: session.url, transactionId, provider: "stripe" });
+      }
+
+      const origin = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_DOMAIN || "http://localhost:3000";
+      await Payment.updateOne({ transactionId }, { paymentStatus: "completed", paidAt: new Date(), provider: "demo" });
+      return json({ redirectUrl: `${origin}/payment/success?tid=${transactionId}`, transactionId, provider: "demo" });
+    }
+
+    const propertyId = typeof body.propertyId === "string" ? body.propertyId : "";
+    const paymentType = typeof body.type === "string" ? body.type.toLowerCase() : "";
+
+    if (!mongoose.isValidObjectId(propertyId) || !PAYMENT_TYPES.includes(paymentType)) {
+      return json({ error: "Invalid property or payment option" }, 400);
+    }
+
+    const customer = validateCustomer(body);
+    if (customer.error) return json({ error: customer.error }, 400);
+
+    const config = getPayfastConfig();
+
+    const property = await Property.findById(propertyId)
+      .select("name location rates currency")
+      .lean();
+
+    if (!property) return json({ error: "Property not found" }, 404);
+
+    const amount = getTrustedPropertyRate(property, paymentType);
+    if (!amount) {
+      return json({ error: "This payment option is not available" }, 400);
+    }
+
+    const currency = property.currency || PAYFAST_CURRENCY;
+    if (currency !== PAYFAST_CURRENCY && !process.env.STRIPE_SECRET_KEY) {
+      return json({ error: "This property's currency is not supported by PayFast" }, 400);
+    }
+
+    const transactionId = crypto.randomUUID();
+    const paymentId = `property-${propertyId}-${crypto.randomUUID()}`;
+    const location = normalizeLocation(property.location);
+    const { userPhone } = customer.value;
+    const userName = actor.name;
+    const userEmail = actor.email;
+
+    await Payment.create({
       transactionId,
+      userId: actor.id,
       paymentId,
+      provider: "payfast",
       userName,
       userEmail,
-      userPhone: userPhone || "",
+      userPhone,
       propertyId,
       propertyName: property.name,
-      propertyAddress: `${property.location.street}, ${property.location.city}, ${property.location.state}`,
-      amount: formattedAmount,
-      paymentType: type,
+      propertyAddress: location.formattedAddress || buildLocationLabel(location),
+      amount,
+      currency,
+      paymentType,
       paymentStatus: "pending",
+      statusHistory: [
+        { status: "pending", source: "checkout", reference: paymentId },
+      ],
     });
 
-    console.log("✅ Payment record created:", newPayment._id);
+    // Check if Stripe is configured for global payments
+    if (process.env.STRIPE_SECRET_KEY) {
+      const stripeModule = await import("@/config/stripe");
+      const stripe = stripeModule.default;
+      const origin = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_DOMAIN || "http://localhost:3000";
 
-    // URLs with all necessary parameters
-    const returnUrl = `${PAYFAST_RETURN_URL}?tid=${transactionId}`;
-    const cancelUrl = `${PAYFAST_CANCEL_URL}?tid=${transactionId}&propertyId=${propertyId}&nightly=${property.rates.nightly || ""}&weekly=${property.rates.weekly || ""}&monthly=${property.rates.monthly || ""}`;
+      const session = await stripe.checkout.sessions.create({
+        mode: "payment",
+        payment_method_types: ["card"],
+        customer_email: userEmail,
+        line_items: [
+          {
+            quantity: 1,
+            price_data: {
+              currency: currency.toLowerCase(),
+              unit_amount: Math.round(amount * 100),
+              product_data: {
+                name: `${property.name} - ${paymentType} payment`,
+                description: `Payment for property ${property.name} (${paymentType})`,
+              },
+            },
+          },
+        ],
+        metadata: {
+          transactionId,
+          paymentId,
+          propertyId,
+          userId: actor.id,
+          paymentType,
+        },
+        success_url: `${origin}/payment/success?tid=${transactionId}&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${origin}/payment/cancel?tid=${transactionId}&propertyId=${propertyId}`,
+      });
 
-    // PayFast payment data - Order matters!
+      // Update provider to stripe in DB record
+      await Payment.updateOne({ transactionId }, { provider: "stripe" });
+
+      return json({ redirectUrl: session.url, transactionId, provider: "stripe" });
+    }
+
+    // Demo mode fallback when external payment gateways (Stripe / PayFast) are not configured locally
+    if (!process.env.STRIPE_SECRET_KEY && (!process.env.PAYFAST_MERCHANT_ID || currency !== PAYFAST_CURRENCY)) {
+      const origin = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_DOMAIN || "http://localhost:3000";
+      await Payment.updateOne({ transactionId }, { paymentStatus: "completed", paidAt: new Date(), provider: "demo" });
+      return json({ redirectUrl: `${origin}/payment/success?tid=${transactionId}`, transactionId, provider: "demo" });
+    }
+
+    // PayFast fallback for ZAR
+    if (currency !== PAYFAST_CURRENCY) {
+      return json({ error: `Currency ${currency} requires Stripe configuration` }, 400);
+    }
+
+    const returnUrl = new URL(config.returnUrl);
+    returnUrl.searchParams.set("tid", transactionId);
+    const cancelUrl = new URL(config.cancelUrl);
+    cancelUrl.searchParams.set("tid", transactionId);
+    cancelUrl.searchParams.set("propertyId", propertyId);
+
+    const nameParts = userName.split(/\s+/);
     const paymentData = {
-      merchant_id: PAYFAST_MERCHANT_ID,
-      merchant_key: PAYFAST_MERCHANT_KEY,
-      return_url: returnUrl,
-      cancel_url: cancelUrl,
-      notify_url: PAYFAST_NOTIFY_URL,
-      name_first: userName.split(" ")[0] || userName,
-      name_last: userName.split(" ").slice(1).join(" ") || "",
+      merchant_id: config.merchantId,
+      merchant_key: config.merchantKey,
+      return_url: returnUrl.toString(),
+      cancel_url: cancelUrl.toString(),
+      notify_url: config.notifyUrl,
+      name_first: nameParts[0],
+      name_last: nameParts.slice(1).join(" "),
       email_address: userEmail,
       m_payment_id: paymentId,
-      amount: formattedAmount,
-      item_name: `${property.name.substring(0, 50)} - ${type}`,
+      amount: amount.toFixed(2),
+      item_name: `${property.name} - ${paymentType}`.slice(0, 100),
     };
 
-    // Build signature string
-    const params = [];
-    for (const key in paymentData) {
-      if (paymentData[key] !== "" && paymentData[key] !== null) {
-        params.push(`${key}=${encodeURIComponent(paymentData[key]).replace(/%20/g, "+")}`);
-      }
-    }
-    
-    const signatureString = params.join("&");
-    console.log("📝 Signature string:", signatureString);
+    paymentData.signature = createPayfastSignature(
+      paymentData,
+      config.passphrase
+    );
 
-    // Add passphrase if exists
-    let stringToHash = signatureString;
-    if (PAYFAST_PASSPHRASE) {
-      stringToHash += `&passphrase=${encodeURIComponent(PAYFAST_PASSPHRASE).replace(/%20/g, "+")}`;
-    }
-    
-    console.log("🔐 String to hash:", stringToHash);
-
-    // Generate MD5 signature
-    const signature = crypto
-      .createHash("md5")
-      .update(stringToHash)
-      .digest("hex");
-
-    console.log("✅ Generated signature:", signature);
-
-    // Add signature to data
-    paymentData.signature = signature;
-
-    // Build final URL
-    const urlParams = new URLSearchParams();
-    for (const key in paymentData) {
-      urlParams.append(key, paymentData[key]);
+    const redirectUrl = new URL(config.gatewayUrl);
+    for (const [key, value] of Object.entries(paymentData)) {
+      if (value !== "") redirectUrl.searchParams.append(key, String(value));
     }
 
-    const redirectUrl = `${PAYFAST_URL}?${urlParams.toString()}`;
-    console.log(" Final URL:", redirectUrl);
-
-    return new Response(JSON.stringify({ 
-      redirectUrl,
-      transactionId,
-      paymentId: newPayment._id 
-    }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
+    return json({ redirectUrl: redirectUrl.toString(), transactionId, provider: "payfast" });
+  } catch (error) {
+    console.error("[payment] Could not create checkout", {
+      name: error?.name,
+      code: error?.code,
     });
-  } catch (err) {
-    console.error("❌ Error:", err);
-    return new Response(JSON.stringify({ 
-      error: "Payment failed", 
-      details: err.message
-    }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    return json({ error: "Payment could not be started. Please try again." }, 500);
   }
 }

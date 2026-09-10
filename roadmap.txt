@@ -1,0 +1,2059 @@
+Act as a **Senior SaaS Product Architect, PropTech Product Consultant, Security Architect, UX Strategist, and Full-Stack Developer with more than 20 years of professional experience**.
+
+You have extensive experience designing and building:
+
+* Multi-tenant SaaS platforms
+* Property rental marketplaces
+* Property sales marketplaces
+* Property-management systems
+* Booking and reservation systems
+* Subscription products
+* Payment and payout platforms
+* Fraud-detection systems
+* AI-assisted verification systems
+* Enterprise administration dashboards
+* Scalable Next.js and MongoDB applications
+
+I have an existing application named **Property Pulse**. I want to transform it from a functional property-rental application into a polished, secure, scalable, production-ready, commercial PropTech SaaS platform.
+
+The final product should allow people and businesses to:
+
+* Sell properties
+* Buy properties
+* List properties for rent
+* Rent properties
+* Book short-term accommodation
+* Apply for long-term rentals
+* Manage tenants and leases
+* Collect rent
+* Manage agencies and staff
+* Manage property maintenance
+* Promote listings
+* Verify properties, owners, agents, and agencies
+* Process payments and subscriptions
+* Communicate securely
+* Generate reports and analytics
+
+The platform must support individual landlords, property owners, buyers, renters, tenants, real-estate agents, agencies, property-management companies, staff members, moderators, administrators, and the application owner.
+
+The application owner must operate as the highest-level **Platform Owner and Super Administrator**, with full control over the platform.
+
+Do not give me only a generic feature list. Analyze my current system and create a practical, industry-level transformation plan.
+
+# 1. Current Application Overview
+
+Property Pulse is currently a full-stack property-rental platform built with:
+
+* Next.js App Router
+* React
+* Tailwind CSS
+* MongoDB
+* Mongoose
+* NextAuth
+* Cloudinary
+* MapLibre GL JS
+* OpenFreeMap
+* Geoapify
+* PayFast
+
+The current system connects property owners with renters using property listings, search, maps, messaging, saved properties, and online payments.
+
+# 2. Existing Authentication System
+
+The current authentication system includes:
+
+* Google sign-in through NextAuth
+* Automatic MongoDB user creation after first login
+* JWT-based sessions
+* User profile information:
+
+  * Name
+  * Email
+  * Profile image
+  * Saved properties
+* Protected pages:
+
+  * Add Property
+  * User Profile
+  * Saved Properties
+  * Messages
+* Property update and deletion authorization based on ownership
+
+Evaluate whether this authentication architecture is suitable for a production SaaS product.
+
+Recommend improvements such as:
+
+* Email and password authentication
+* Passwordless login
+* Google login
+* Apple login
+* Facebook login
+* Phone-number login
+* Email verification
+* Phone verification
+* Multi-factor authentication
+* Account recovery
+* Session and device management
+* Login alerts
+* Suspicious-login detection
+* Account linking
+* Role-based authorization
+* Permission-based authorization
+* Tenant-aware authorization
+
+# 3. Existing Home Page
+
+The current home page includes:
+
+* Professional hero section
+* Advanced property search
+* Sections for renters and property owners
+* Featured property listings
+* Three newest property listings
+* Empty states
+* Error states
+* Links for browsing properties
+* Links for adding properties
+
+Recommend how to improve the homepage for conversion, trust, search-engine optimization, lead generation, and marketplace growth.
+
+Include recommendations for:
+
+* Location-based landing pages
+* Property-category pages
+* City pages
+* Buy, rent, and commercial-property sections
+* Testimonials
+* Verified listing indicators
+* Trust and safety information
+* Agency directories
+* Popular locations
+* Recently added properties
+* Price-reduced properties
+* Recommended properties
+* Call-to-action sections
+* Content marketing
+* Property guides
+* Mortgage or affordability tools
+* Newsletter signup
+* Search alerts
+
+# 4. Existing Search System
+
+Users can currently search using:
+
+* Property name
+* Description
+* Property type
+* City
+* State or province
+* Street
+* Area or district
+* Country
+* Postal code
+* Amenities
+
+Existing filters include:
+
+* Property type
+* Minimum bedrooms
+* Minimum bathrooms
+* Nightly price
+* Weekly price
+* Monthly price
+* Minimum property area
+* Maximum property area
+* Recommended sorting
+* Newest sorting
+* Price sorting
+* Area sorting
+* Bedroom sorting
+
+Search suggestions, available property types, popular locations, and price ranges are dynamically generated from MongoDB data.
+
+Search requests are sanitized, paginated, and restricted to safe values.
+
+Design an industry-grade search system that supports:
+
+* Buy properties
+* Rent properties
+* Short-term rentals
+* Long-term rentals
+* Residential properties
+* Commercial properties
+* Land and plots
+* New developments
+* Shared accommodation
+* Student accommodation
+* Vacation rentals
+* Offices
+* Shops
+* Warehouses
+* Industrial properties
+* Buildings
+* Units
+
+Include advanced filters such as:
+
+* Listing purpose
+* Property category
+* Furnishing
+* Availability date
+* Lease length
+* Pets allowed
+* Parking
+* Floor number
+* Year built
+* Property condition
+* Verified properties only
+* Verified owners only
+* Virtual tour available
+* Open-house availability
+* Utilities included
+* Security deposit
+* Service fees
+* Sale price
+* Rental price
+* Price per square meter
+* Nearby facilities
+* Accessibility features
+* Energy rating
+
+Recommend the best search architecture for:
+
+1. Initial commercial launch
+2. Early growth
+3. Large-scale marketplace
+
+Compare:
+
+* MongoDB text and geospatial search
+* MongoDB Atlas Search
+* Elasticsearch
+* OpenSearch
+* Meilisearch
+* Typesense
+
+# 5. Existing Property Listing Management
+
+Authenticated owners can currently:
+
+* Add properties
+* View their listings
+* Edit properties
+* Delete properties
+* Upload up to four images
+* Configure nightly, weekly, and monthly rental rates
+* Add contact details
+* Select amenities
+* Enter property size
+* Enter bedrooms
+* Enter bathrooms
+* Select property type
+* Add property title
+* Add property description
+
+Images are uploaded to Cloudinary and stored as secure URLs in MongoDB.
+
+Upgrade this into a professional listing-management system supporting:
+
+* Draft listings
+* Pending-review listings
+* Approved listings
+* Rejected listings
+* Suspended listings
+* Archived listings
+* Expired listings
+* Sold listings
+* Rented listings
+* Under-offer listings
+* Reserved listings
+* Listing duplication
+* Listing scheduling
+* Listing renewal
+* Listing expiration
+* Listing pause and resume
+* Listing version history
+* Listing change history
+* Bulk property import
+* CSV import
+* API import
+* Bulk editing
+* Multiple property units
+* Building and unit relationships
+* Listing preview
+* Listing-completeness score
+* SEO preview
+* Featured listings
+* Sponsored listings
+* Promoted listings
+* Listing analytics
+* Lead analytics
+* Property comparison
+* Similar properties
+* Recently viewed properties
+* Saved searches
+* Price-drop alerts
+* New-listing alerts
+
+Allow more professional media support:
+
+* High-resolution images
+* Image reordering
+* Cover image selection
+* Image captions
+* Video walkthroughs
+* Virtual tours
+* 360-degree tours
+* Floor plans
+* Property brochures
+* Ownership documents
+* Rental documents
+* Energy certificates
+* Inspection reports
+
+# 6. Existing Location and Mapping System
+
+The current location system uses:
+
+* MapLibre GL JS
+* OpenFreeMap
+* Geoapify
+* MongoDB-stored coordinates
+
+Users can:
+
+* Search for addresses
+* Select suggestions
+* Populate structured address fields
+* Click on the map
+* Drag a map marker
+* Use their browser location
+* Enter latitude and longitude manually
+* Reverse-geocode coordinates
+
+Stored location information includes:
+
+* Formatted address
+* Country
+* Country code
+* State or province
+* City
+* Area or district
+* Street
+* Postal code
+* Latitude
+* Longitude
+* GeoJSON coordinates
+* Place ID
+* Geocoding provider
+* Geocoding accuracy
+* Location resolution status
+
+Recommend improvements including:
+
+* Map-boundary search
+* Radius search
+* Polygon search
+* Draw-on-map search
+* Nearby facilities
+* Public transport information
+* School information
+* Hospital information
+* Shopping information
+* Travel-time search
+* Neighborhood pages
+* Location risk indicators
+* Approximate-location display for privacy
+* Exact-location display after booking
+* Location-quality scoring
+* Geocoding provider fallback
+* Geocoding confidence validation
+
+# 7. Existing Property Details Page
+
+The current property details page includes:
+
+* Header image
+* Responsive PhotoSwipe gallery
+* Property title
+* Property type
+* Address
+* Description
+* Bedrooms
+* Bathrooms
+* Property area
+* Amenities
+* Nightly, weekly, and monthly rates
+* Seller information
+* Interactive map
+* Bookmark button
+* Social sharing
+* Contact form
+* Payment or booking link
+
+Redesign this page as a high-conversion marketplace page.
+
+Include:
+
+* Verified property badge
+* Verified owner or agent badge
+* Listing reference number
+* Listing status
+* Availability calendar
+* Total-price calculation
+* Additional fees
+* Security deposit
+* Taxes
+* Cancellation policy
+* Refund policy
+* Lease requirements
+* Property rules
+* Video tour
+* Floor plan
+* Documents
+* Nearby facilities
+* Reviews
+* Owner response rate
+* Owner response time
+* Listing views
+* Number of inquiries
+* Property comparison
+* Similar properties
+* Report listing
+* Schedule viewing
+* Submit offer
+* Request booking
+* Instant booking
+* Rental application
+* Mortgage inquiry
+* Share listing
+* Print brochure
+
+# 8. Saved Properties and Search Alerts
+
+The current system allows users to save and remove properties.
+
+Upgrade this system to include:
+
+* Favorites collections
+* Custom favorite folders
+* Property comparison
+* Recently viewed properties
+* Saved searches
+* Search alerts
+* New-property alerts
+* Price-drop alerts
+* Property-status alerts
+* Availability alerts
+* Expiring-listing alerts
+* Email notifications
+* Push notifications
+* SMS notifications
+* WhatsApp notifications
+
+# 9. Existing Messaging System
+
+The current messaging system supports:
+
+* Sender
+* Recipient
+* Property association
+* Name
+* Email
+* Phone number
+* Message
+* Prevention of self-messaging
+* Read and unread status
+* Inbox
+* Mark as read
+* Delete message
+* Unread counter
+
+Upgrade it into a professional real-time communication system supporting:
+
+* Conversations
+* Threaded messages
+* Real-time chat
+* WebSocket communication
+* File attachments
+* Images
+* Documents
+* Audio messages
+* Read receipts
+* Typing indicators
+* Online status
+* Message reactions
+* Message search
+* Message archive
+* Message blocking
+* Spam protection
+* Reporting
+* Moderation
+* Internal agency notes
+* Shared team inbox
+* Message assignment
+* Saved replies
+* Automated replies
+* Booking messages
+* Payment messages
+* Viewing reminders
+* Email notifications
+* SMS notifications
+* WhatsApp notifications
+* Push notifications
+
+Recommend whether to use:
+
+* WebSockets
+* Server-Sent Events
+* Polling
+* Pusher
+* Ably
+* Socket.IO
+* Supabase Realtime
+* Firebase
+
+# 10. Existing Payments
+
+The platform currently uses PayFast.
+
+Users can:
+
+* Select nightly, weekly, or monthly payment
+* Enter customer details
+* Generate a PayFast payment request
+* Complete payment through PayFast
+* Return to success or cancellation pages
+
+The current payment model stores:
+
+* Transaction ID
+* Payment ID
+* Customer information
+* Property information
+* Amount
+* Rental period
+* Currency
+* Payment status
+* PayFast information
+* Creation timestamp
+* Payment timestamp
+* Cancellation timestamp
+* Refund timestamp
+
+Current statuses are:
+
+* Pending
+* Completed
+* Failed
+* Cancelled
+* Refunded
+
+Design a provider-independent payment architecture supporting:
+
+* PayFast
+* Stripe
+* PayPal
+* Bank transfer
+* Mobile wallet
+* Recurring rent payments
+* Subscription payments
+* Booking payments
+* Security deposits
+* Reservation deposits
+* Partial payments
+* Installments
+* Payment plans
+* Coupons
+* Discounts
+* Taxes
+* Service charges
+* Platform commissions
+* Agent commissions
+* Owner payouts
+* Refunds
+* Partial refunds
+* Payment disputes
+* Failed-payment retries
+* Invoices
+* Receipts
+* Credit notes
+* Payment reconciliation
+* Financial ledger
+* Multiple currencies
+* Currency conversion
+* Webhook verification
+* Webhook idempotency
+* Double-payment prevention
+
+Explain whether the platform should use:
+
+* Direct payments
+* Marketplace payments
+* Split payments
+* Escrow-style payments
+* Third-party regulated payment providers
+
+Do not recommend directly holding customer funds without considering financial licensing and legal compliance.
+
+# 11. Platform Owner and Super Administrator
+
+The application owner must have the highest role in the system.
+
+Create a protected role called:
+
+`PLATFORM_OWNER`
+
+This role represents the owner of the entire Property Pulse platform.
+
+The Platform Owner must be able to:
+
+* Control the complete application
+* View all users
+* View all organizations
+* View all agencies
+* View all properties
+* View all listings
+* View all bookings
+* View all payments
+* View all subscriptions
+* View all refunds
+* View all payouts
+* View all disputes
+* View all support tickets
+* View all reports
+* View all audit logs
+* Manage platform settings
+* Manage countries
+* Manage currencies
+* Manage property types
+* Manage amenities
+* Manage subscription plans
+* Manage platform commissions
+* Manage taxes
+* Manage payment providers
+* Manage notification templates
+* Manage email templates
+* Manage feature flags
+* Manage CMS content
+* Manage legal pages
+* Manage administrators
+* Suspend users
+* Ban users
+* Restore users
+* Suspend listings
+* Approve listings
+* Reject listings
+* Delete fraudulent listings
+* Verify properties
+* Verify owners
+* Verify agents
+* Verify agencies
+* Manage fraud investigations
+* View AI risk reports
+* Override AI recommendations
+* Configure AI verification thresholds
+* Access system-health dashboards
+* Access background-job monitoring
+* Access API-usage monitoring
+* Access security logs
+
+The `PLATFORM_OWNER` role must:
+
+* Be assigned only through secure server-side configuration
+* Never be assignable through public APIs
+* Never be assignable through the normal admin interface
+* Require multi-factor authentication
+* Require recent authentication for sensitive actions
+* Use IP and device monitoring
+* Have all actions recorded in immutable audit logs
+* Have protected session-management controls
+* Be limited to a very small number of trusted accounts
+
+Create additional administration roles:
+
+* Super Admin
+* Verification Admin
+* Listing Moderator
+* Fraud and Risk Analyst
+* Finance Admin
+* Subscription Admin
+* Support Admin
+* Content Admin
+* Technical Operations Admin
+
+Use fine-grained permissions such as:
+
+* `users.read`
+* `users.update`
+* `users.suspend`
+* `users.ban`
+* `users.delete`
+* `properties.read`
+* `properties.review`
+* `properties.approve`
+* `properties.reject`
+* `properties.suspend`
+* `properties.delete`
+* `verifications.read`
+* `verifications.review`
+* `verifications.approve`
+* `verifications.reject`
+* `payments.read`
+* `refunds.review`
+* `refunds.approve`
+* `payouts.review`
+* `subscriptions.manage`
+* `organizations.manage`
+* `reports.review`
+* `disputes.manage`
+* `support.manage`
+* `admins.manage`
+* `settings.manage`
+* `feature_flags.manage`
+* `audit_logs.read`
+* `risk_rules.manage`
+
+# 12. Property Approval and Verification Workflow
+
+A newly submitted property must not immediately appear publicly.
+
+Design the following workflow:
+
+1. The owner, landlord, or agent creates a property.
+2. The listing is saved as `DRAFT`.
+3. The user completes all required fields.
+4. The system calculates a listing-completeness score.
+5. The user submits the listing for verification.
+6. The status becomes `PENDING_VERIFICATION`.
+7. Automated validation begins.
+8. Google Gemini analyzes the listing data, images, and documents.
+9. Rule-based fraud checks run.
+10. Duplicate-listing checks run.
+11. Image-quality and image-consistency checks run.
+12. Location and address checks run.
+13. Owner, agent, or agency verification is checked.
+14. The system generates a risk score.
+15. A verification administrator reviews the listing.
+16. The administrator approves, rejects, or requests changes.
+17. Only an approved listing becomes publicly visible.
+
+Recommended listing statuses:
+
+* `DRAFT`
+* `INCOMPLETE`
+* `PENDING_SUBMISSION`
+* `PENDING_AI_REVIEW`
+* `PENDING_MANUAL_REVIEW`
+* `CHANGES_REQUESTED`
+* `APPROVED`
+* `PUBLISHED`
+* `REJECTED`
+* `SUSPENDED`
+* `FLAGGED`
+* `EXPIRED`
+* `ARCHIVED`
+* `RENTED`
+* `SOLD`
+
+Define valid status transitions and prevent users from bypassing the verification process.
+
+# 13. Google Gemini AI Verification
+
+Integrate Google Gemini as an AI-assisted verification system.
+
+Gemini must not be the final decision-maker. It should assist administrators by generating risk signals, explanations, and recommendations.
+
+Use Gemini for:
+
+## Listing Content Analysis
+
+* Detect suspicious or misleading descriptions
+* Detect unrealistic claims
+* Detect missing information
+* Detect contradictory information
+* Detect prohibited content
+* Detect copied listing descriptions
+* Detect phone numbers or external links inserted to bypass the platform
+* Classify the property type
+* Extract amenities
+* Identify possible pricing mistakes
+* Detect misleading urgency
+* Detect spam
+
+## Property Image Analysis
+
+* Check whether images appear to show a real property
+* Detect unrelated images
+* Detect stock images
+* Detect screenshots
+* Detect watermarks
+* Detect excessive text overlays
+* Detect duplicate images
+* Detect very low-quality images
+* Detect images reused across multiple listings
+* Check whether images are consistent with the selected property type
+* Identify rooms and property features
+* Detect likely AI-generated property images
+* Detect possible image manipulation
+* Detect personal or sensitive information visible in images
+
+## Document Analysis
+
+Gemini should assist with extracting and comparing information from:
+
+* Ownership documents
+* Agency registration documents
+* Agent licenses
+* Identity documents
+* Utility bills
+* Property tax documents
+* Rental permits
+* Property certificates
+* Inspection reports
+
+Use Gemini to extract:
+
+* Owner name
+* Property address
+* Document number
+* Registration number
+* Issue date
+* Expiry date
+* Property identifiers
+* Agency name
+* Agent name
+
+Compare extracted information with the listing and user account.
+
+Sensitive documents must be stored securely and should not be publicly accessible.
+
+## Address and Location Validation
+
+Use Gemini together with geocoding and rule-based validation to detect:
+
+* Address and map-coordinate mismatch
+* City and postal-code mismatch
+* Country mismatch
+* Invalid or incomplete address
+* Location inconsistent with images or description
+* Duplicate properties using slightly different addresses
+
+## Price Validation
+
+Use AI and marketplace data to identify:
+
+* Extremely low prices
+* Extremely high prices
+* Possible typing mistakes
+* Suspicious deposit amounts
+* Unusual payment requirements
+* Prices inconsistent with nearby properties
+
+The system should never automatically reject a listing solely because the price differs from the market.
+
+## Duplicate and Fraud Detection
+
+Create checks for:
+
+* Duplicate images
+* Duplicate descriptions
+* Duplicate addresses
+* Duplicate contact information
+* Multiple accounts using the same property
+* Previously banned users
+* Suspicious account activity
+* Rapid listing creation
+* Repeated rejected listings
+* Use of disposable email addresses
+* Suspicious IP addresses
+* Suspicious devices
+* Mismatched identity and ownership information
+
+# 14. AI Verification Result
+
+The Gemini verification service should produce structured JSON results.
+
+Example fields:
+
+* `overallRiskScore`
+* `riskLevel`
+* `recommendedAction`
+* `confidenceScore`
+* `contentRiskScore`
+* `imageRiskScore`
+* `documentRiskScore`
+* `locationRiskScore`
+* `priceRiskScore`
+* `duplicateRiskScore`
+* `identityRiskScore`
+* `detectedIssues`
+* `missingInformation`
+* `suspiciousClaims`
+* `imageFindings`
+* `documentFindings`
+* `locationFindings`
+* `priceFindings`
+* `duplicateMatches`
+* `positiveSignals`
+* `adminSummary`
+* `modelName`
+* `modelVersion`
+* `promptVersion`
+* `processedAt`
+
+Recommended actions:
+
+* `AUTO_PASS_FOR_MANUAL_REVIEW`
+* `STANDARD_MANUAL_REVIEW`
+* `REQUEST_MORE_INFORMATION`
+* `HIGH_RISK_REVIEW`
+* `RECOMMEND_REJECTION`
+* `ESCALATE_TO_FRAUD_TEAM`
+
+AI reports must include human-readable reasons.
+
+Do not allow AI to directly publish, permanently reject, ban, or delete users without a human decision.
+
+# 15. Verification Admin Dashboard
+
+Create a professional verification queue.
+
+Administrators should be able to:
+
+* View pending listings
+* Filter by country
+* Filter by city
+* Filter by property type
+* Filter by risk score
+* Filter by submission date
+* Filter by owner type
+* Filter by agency
+* Sort by highest risk
+* Sort by oldest submission
+* View AI findings
+* View fraud-rule findings
+* View user verification
+* View owner verification
+* View property documents
+* Compare document data with listing data
+* View map location
+* View duplicate matches
+* View previous listings from the same user
+* View previous rejected listings
+* View account-risk history
+* Request additional information
+* Request document resubmission
+* Add internal notes
+* Assign the review to another administrator
+* Approve the listing
+* Reject the listing
+* Suspend the listing
+* Escalate the listing
+* Record rejection reasons
+* Send templated messages to the submitter
+
+All decisions must be stored in a verification-history record.
+
+# 16. Verification Rules
+
+Design a configurable rule engine.
+
+Example rules:
+
+* Require at least five images
+* Require a cover image
+* Require structured address
+* Require valid coordinates
+* Require phone verification
+* Require owner identity verification
+* Require agency verification for agency accounts
+* Require ownership documents for sale listings
+* Require rental authorization for managed properties
+* Reject unsupported file types
+* Flag duplicate images
+* Flag duplicate addresses
+* Flag banned phone numbers
+* Flag suspicious email domains
+* Flag unrealistic price differences
+* Flag excessive listing creation
+* Flag account and document name mismatch
+* Flag property location mismatch
+
+The Platform Owner should be able to configure:
+
+* Risk thresholds
+* Required documents
+* Country-specific requirements
+* Property-type requirements
+* Auto-flag rules
+* Manual-review rules
+* Verification expiration periods
+* Reverification requirements
+
+# 17. User, Owner, Agent, and Agency Verification
+
+Design verification levels.
+
+## User Verification
+
+* Email verified
+* Phone verified
+* Identity verified
+* Address verified
+* Payment method verified
+
+## Property Owner Verification
+
+* Identity verified
+* Phone verified
+* Ownership document verified
+* Property address verified
+* Bank account verified
+* Manual review completed
+
+## Agent Verification
+
+* Identity verified
+* Phone verified
+* Agent-license verified
+* Agency relationship verified
+* Manual review completed
+
+## Agency Verification
+
+* Business registration verified
+* Office address verified
+* Tax information verified
+* Authorized representative verified
+* Bank account verified
+* Manual review completed
+
+Display appropriate verification badges without exposing sensitive details.
+
+# 18. Multi-Tenant SaaS Architecture
+
+Design a true multi-tenant system supporting:
+
+* Individual landlords
+* Real-estate agencies
+* Property-management companies
+* Enterprise property companies
+* Multiple branches
+* Teams
+* Staff invitations
+* Custom roles
+* Custom permissions
+* Tenant-specific settings
+* Tenant-specific branding
+* Tenant-specific subscription plans
+* Tenant-specific usage limits
+* Tenant-specific billing
+* Tenant-specific feature flags
+* Tenant-specific reports
+* Tenant-specific audit logs
+* Custom domains
+* White-label portals
+
+Compare:
+
+* Shared database and shared collections
+* Shared database using `tenantId`
+* Separate database per tenant
+* Hybrid architecture
+
+Recommend the most practical architecture for:
+
+1. MVP
+2. Growth stage
+3. Enterprise stage
+
+Explain how tenant data isolation should be enforced in:
+
+* Database queries
+* API routes
+* Server actions
+* Background jobs
+* Search indexes
+* File storage
+* Caching
+* Analytics
+* Webhooks
+* Audit logs
+
+# 19. Roles and Permissions
+
+Design a role and permission system for:
+
+* Guest
+* Renter
+* Buyer
+* Tenant
+* Property Owner
+* Landlord
+* Real-Estate Agent
+* Agency Owner
+* Agency Administrator
+* Agency Staff
+* Property Manager
+* Maintenance Worker
+* Vendor
+* Accountant
+* Support Agent
+* Listing Moderator
+* Verification Administrator
+* Fraud Analyst
+* Finance Administrator
+* Super Administrator
+* Platform Owner
+
+Users may have multiple roles.
+
+Explain what every role can:
+
+* View
+* Create
+* Update
+* Delete
+* Approve
+* Reject
+* Export
+* Manage
+
+# 20. Rental Booking System
+
+Design a complete short-term booking system supporting:
+
+* Availability calendar
+* Check-in date
+* Check-out date
+* Number of guests
+* Real-time availability checking
+* Booking request
+* Instant booking
+* Owner approval
+* Booking expiration
+* Booking confirmation
+* Security deposit
+* Cleaning fee
+* Service fee
+* Taxes
+* Discounts
+* Coupons
+* Cancellation policies
+* Refund policies
+* Rescheduling
+* Check-in instructions
+* Check-out instructions
+* Booking reminders
+* Guest information
+* Booking modifications
+* Booking disputes
+* Reviews after completion
+
+Include concurrency protection to prevent double booking.
+
+# 21. Long-Term Rental System
+
+Design a complete long-term rental workflow supporting:
+
+* Rental applications
+* Applicant profile
+* Employment information
+* Income information
+* References
+* Guarantor information
+* Document upload
+* Tenant screening
+* Application fee
+* Application review
+* Owner approval
+* Owner rejection
+* Lease generation
+* Lease templates
+* Electronic signatures
+* Security deposit
+* Recurring rent
+* Late fees
+* Rent reminders
+* Rent increases
+* Lease renewal
+* Lease termination
+* Move-in inspection
+* Move-out inspection
+* Deposit deductions
+* Tenant notices
+* Tenant statements
+* Landlord statements
+
+Clearly mark features that require country-specific legal review.
+
+# 22. Property Sales System
+
+Design a property-sales workflow supporting:
+
+* Buyer inquiries
+* Viewing appointments
+* Open houses
+* Buyer offers
+* Counteroffers
+* Offer acceptance
+* Offer rejection
+* Proof-of-funds upload
+* Mortgage-preapproval upload
+* Reservation
+* Reservation deposit
+* Sales agreement
+* Document sharing
+* Agent commission
+* Buyer timeline
+* Seller timeline
+* Transaction milestones
+* Deal-closing status
+* Sale completion
+* Property marked as sold
+
+Clarify which activities can safely occur within the platform and which should use external legal, banking, escrow, mortgage, or conveyancing providers.
+
+# 23. Property Management SaaS
+
+Design professional property-management functionality including:
+
+* Buildings
+* Units
+* Owners
+* Tenants
+* Leases
+* Rent schedules
+* Recurring invoices
+* Rent collection
+* Late fees
+* Expenses
+* Owner statements
+* Tenant statements
+* Maintenance requests
+* Work orders
+* Vendor management
+* Inspection reports
+* Utility tracking
+* Asset inventory
+* Document storage
+* Lease reminders
+* Occupancy reports
+* Income reports
+* Expense reports
+* Profitability reports
+* Staff assignments
+* Internal notes
+* Approval workflows
+* Owner portals
+* Tenant portals
+* Vendor portals
+
+# 24. Reviews and Reputation
+
+Design a review system for:
+
+* Properties
+* Owners
+* Agents
+* Agencies
+* Renters
+* Tenants
+* Buyers
+* Maintenance vendors
+
+Include:
+
+* Verified reviews
+* Reviews only after completed transactions
+* Rating categories
+* Written reviews
+* Review responses
+* Review moderation
+* Review reporting
+* Review disputes
+* Fake-review prevention
+* Review editing limits
+* Reputation score
+* Response-rate indicator
+* Response-time indicator
+* Cancellation-rate indicator
+
+# 25. Notifications
+
+Design an event-driven notification system supporting:
+
+* In-app notifications
+* Email notifications
+* SMS notifications
+* WhatsApp notifications
+* Web push notifications
+* Mobile push notifications
+
+Notification events should include:
+
+* New message
+* New inquiry
+* Viewing request
+* Viewing reminder
+* Booking request
+* Booking approval
+* Booking rejection
+* Payment success
+* Payment failure
+* Refund
+* Payout
+* Rent due
+* Rent overdue
+* Lease expiration
+* Listing approval
+* Listing rejection
+* Listing changes requested
+* Listing expiration
+* Property verification
+* Account verification
+* Maintenance update
+* Document-signature request
+* Security alert
+
+Include:
+
+* User preferences
+* Notification templates
+* Localization
+* Retry logic
+* Delivery logs
+* Queues
+* Dead-letter queues
+* Rate limits
+* Digest notifications
+
+# 26. Subscription and Monetization
+
+Design SaaS plans such as:
+
+* Free
+* Individual Landlord
+* Professional
+* Agency
+* Property Management
+* Enterprise
+
+Possible limits:
+
+* Active listings
+* Team members
+* Branches
+* Storage
+* Leads
+* Messages
+* Reports
+* AI verification requests
+* Automation
+* API access
+* Custom branding
+* Custom domain
+* Priority support
+
+Monetization options:
+
+* Monthly subscription
+* Annual subscription
+* Listing fee
+* Featured-listing fee
+* Promoted-listing fee
+* Booking commission
+* Sales lead fee
+* Agent subscription
+* Property-verification fee
+* Tenant-screening fee
+* Payment-processing fee
+* Premium analytics
+* Advertising
+* Enterprise licensing
+
+Recommend a practical monetization model for launch and later growth.
+
+# 27. Admin and Operations Dashboard
+
+Design a professional administration dashboard containing:
+
+* Platform overview
+* User management
+* Organization management
+* Agency management
+* Listing moderation
+* Property verification
+* User verification
+* Agent verification
+* Agency verification
+* AI-risk reports
+* Fraud alerts
+* Payments
+* Refunds
+* Payouts
+* Subscriptions
+* Coupons
+* Commissions
+* Taxes
+* Disputes
+* Reported content
+* Support tickets
+* Email templates
+* Notification templates
+* CMS pages
+* FAQs
+* Countries
+* Currencies
+* Property categories
+* Amenities
+* Feature flags
+* Background jobs
+* API usage
+* System health
+* Audit logs
+* Platform analytics
+
+# 28. Database Design
+
+Recommend production-ready database models for:
+
+* User
+* UserProfile
+* UserSession
+* Device
+* Role
+* Permission
+* Organization
+* OrganizationMember
+* Branch
+* Property
+* Building
+* Unit
+* Listing
+* ListingVersion
+* PropertyMedia
+* Amenity
+* Address
+* Availability
+* Booking
+* BookingGuest
+* RentalApplication
+* Lease
+* LeaseTenant
+* Offer
+* ViewingAppointment
+* Payment
+* PaymentAttempt
+* Refund
+* Payout
+* Invoice
+* LedgerEntry
+* Subscription
+* SubscriptionPlan
+* UsageRecord
+* Conversation
+* ConversationParticipant
+* Message
+* Notification
+* Review
+* MaintenanceRequest
+* WorkOrder
+* Vendor
+* Document
+* VerificationRequest
+* VerificationResult
+* AIAnalysis
+* RiskSignal
+* FraudCase
+* Report
+* Dispute
+* SupportTicket
+* AuditLog
+* WebhookEvent
+* FeatureFlag
+
+For every important model, provide:
+
+* Purpose
+* Main fields
+* Relationships
+* Required indexes
+* Unique constraints
+* Tenant-isolation rules
+* Soft-deletion rules
+* Status values
+* Audit requirements
+* Data-retention requirements
+
+# 29. API Architecture
+
+Recommend APIs for:
+
+* Authentication
+* Users
+* Organizations
+* Roles
+* Permissions
+* Properties
+* Listings
+* Media
+* Search
+* Verification
+* AI analysis
+* Bookings
+* Availability
+* Rental applications
+* Leases
+* Offers
+* Viewings
+* Payments
+* Refunds
+* Payouts
+* Subscriptions
+* Messages
+* Notifications
+* Reviews
+* Maintenance
+* Reports
+* Support
+* Admin operations
+
+Include recommendations for:
+
+* REST versus GraphQL
+* API versioning
+* Input validation
+* Output validation
+* Pagination
+* Filtering
+* Sorting
+* Authorization
+* Idempotency
+* Rate limiting
+* Error formats
+* Webhook design
+* Public APIs
+* API keys
+* Audit logging
+
+# 30. Security
+
+Create a complete security plan covering:
+
+* Authentication
+* Authorization
+* Tenant isolation
+* Multi-factor authentication
+* Session security
+* CSRF
+* XSS
+* NoSQL injection
+* SSRF
+* File-upload attacks
+* Malware scanning
+* Image validation
+* Document validation
+* Rate limiting
+* CAPTCHA
+* Bot prevention
+* Brute-force protection
+* API-key management
+* Secret management
+* Encryption
+* Personally identifiable information
+* Secure webhook verification
+* Audit logging
+* Device management
+* Admin protection
+* Platform Owner protection
+* Backup security
+* Incident response
+* Account suspension
+* Data export
+* Account deletion
+
+# 31. Legal and Compliance
+
+Identify legal areas that require professional review:
+
+* Terms and conditions
+* Privacy policy
+* Cookie policy
+* Marketplace policy
+* Rental policy
+* Sales policy
+* Refund policy
+* Cancellation policy
+* Fair-housing laws
+* Anti-discrimination requirements
+* Consumer-protection laws
+* Electronic signatures
+* Data-protection laws
+* KYC requirements
+* AML requirements
+* Payment regulations
+* Escrow regulations
+* Tax requirements
+* Data retention
+* Account deletion
+* Accessibility requirements
+* Property advertising requirements
+* Agent licensing requirements
+* Document-storage requirements
+
+Clearly state that AI verification does not replace legal ownership verification, identity verification, or professional document review.
+
+# 32. Technical Architecture
+
+Recommend architecture for:
+
+## Commercial MVP
+
+* Modular Next.js application
+* API routes or route handlers
+* MongoDB
+* Background jobs
+* Object storage
+* Search
+* Authentication
+* Payments
+* AI verification
+* Monitoring
+
+## Growth Stage
+
+* Dedicated workers
+* Event queues
+* Redis caching
+* Search service
+* Notification service
+* Real-time messaging
+* Analytics pipeline
+* Fraud service
+
+## Large Scale
+
+* Service boundaries
+* Event-driven architecture
+* Independent scaling
+* Search infrastructure
+* Payment service
+* Verification service
+* Messaging service
+* Notification service
+* Reporting service
+
+Avoid unnecessary microservices during the initial stage.
+
+Recommend tools for:
+
+* Queues
+* Background jobs
+* Caching
+* Real-time messaging
+* Search
+* Storage
+* Email
+* SMS
+* WhatsApp
+* Monitoring
+* Logging
+* Error tracking
+* Analytics
+* Feature flags
+
+# 33. Gemini Integration Architecture
+
+Recommend a secure Gemini implementation.
+
+The browser must never directly access the Gemini API key.
+
+Use a server-side AI service that:
+
+1. Receives a verification job.
+2. Loads authorized listing data.
+3. Loads secure media or documents.
+4. Removes unnecessary personal information.
+5. Selects the correct prompt version.
+6. Calls Gemini.
+7. Validates the structured response.
+8. Stores the result.
+9. Generates risk signals.
+10. Sends the listing to the appropriate review queue.
+
+Include:
+
+* Prompt versioning
+* Model version tracking
+* Structured-output validation
+* Timeouts
+* Retries
+* Exponential backoff
+* Rate limits
+* Cost limits
+* Token limits
+* AI-result caching
+* Job deduplication
+* Audit logging
+* Manual override
+* Fallback when Gemini is unavailable
+* Protection against prompt injection inside listing descriptions or documents
+
+# 34. DevOps and Infrastructure
+
+Create a production deployment plan covering:
+
+* Development
+* Testing
+* Staging
+* Production
+* Preview deployments
+* CI/CD
+* Docker
+* Environment variables
+* Secret management
+* Database migrations
+* Seed data
+* Automated testing
+* Backups
+* Disaster recovery
+* Rollbacks
+* CDN
+* Object storage
+* Queue workers
+* Scheduled jobs
+* Monitoring
+* Error tracking
+* Logging
+* Metrics
+* Tracing
+* Uptime monitoring
+* Cost monitoring
+
+Compare:
+
+* Vercel
+* AWS
+* Google Cloud
+* Azure
+* DigitalOcean
+* Railway
+* Render
+* Cloudflare
+
+Recommend a practical launch architecture and future migration path.
+
+# 35. Testing Strategy
+
+Create a complete test plan including:
+
+* Unit testing
+* Integration testing
+* API testing
+* End-to-end testing
+* Authorization testing
+* Tenant-isolation testing
+* Property-verification testing
+* Gemini-response validation
+* Prompt-injection testing
+* Payment-webhook testing
+* Booking-concurrency testing
+* Search testing
+* File-upload testing
+* Security testing
+* Accessibility testing
+* Performance testing
+* Load testing
+* Browser testing
+* Mobile testing
+* Backup-restoration testing
+* Disaster-recovery testing
+
+# 36. Analytics
+
+Recommend customer-facing and internal analytics.
+
+Customer-facing analytics:
+
+* Listing views
+* Search appearances
+* Saved-property count
+* Inquiry count
+* Viewing requests
+* Booking conversion
+* Lead conversion
+* Property performance
+* Occupancy
+* Revenue
+* Owner response rate
+* Agent performance
+
+Internal platform analytics:
+
+* Active users
+* Active organizations
+* Active listings
+* Approved listings
+* Rejected listings
+* Verification time
+* AI-risk distribution
+* Fraud cases
+* Payment volume
+* Booking volume
+* Sales leads
+* Gross merchandise value
+* Platform commissions
+* Subscription revenue
+* Monthly recurring revenue
+* Churn
+* Failed payments
+* Refund rate
+* Support volume
+
+# 37. Internationalization and Accessibility
+
+Design support for:
+
+* Multiple countries
+* Multiple currencies
+* Multiple languages
+* Right-to-left languages
+* Time zones
+* Date formats
+* Measurement units
+* Address formats
+* Country-specific property types
+* Country-specific taxes
+* Country-specific verification rules
+* Country-specific payment providers
+* Country-specific legal documents
+
+Include accessibility support for:
+
+* Keyboard navigation
+* Screen readers
+* Color contrast
+* Focus management
+* Accessible forms
+* Accessible maps
+* Accessible image galleries
+* Accessible admin dashboards
+* WCAG compliance
+
+# 38. Migration Plan
+
+Explain how to upgrade the current system safely.
+
+Include:
+
+* User-role migration
+* Property-to-listing migration
+* Existing bookmark migration
+* Existing message migration
+* Existing payment migration
+* Location-data migration
+* Media migration
+* Listing-status migration
+* Organization migration
+* Backward-compatible APIs
+* Feature flags
+* Staged rollout
+* Beta testing
+* Reverification strategy
+* Legacy listing support
+* Rollback strategy
+
+# 39. Development Roadmap
+
+Create a roadmap divided into:
+
+## Phase 0: Audit and Stabilization
+
+Focus on:
+
+* Security review
+* Authentication improvements
+* Database cleanup
+* Payment verification
+* Logging
+* Error tracking
+* Automated tests
+* Existing bug fixes
+
+## Phase 1: Commercial Marketplace MVP
+
+Focus on:
+
+* Buy and rent listing types
+* Improved roles
+* Listing-status workflow
+* Super Admin dashboard
+* Manual listing approval
+* Property verification
+* Basic Gemini AI risk analysis
+* Better media
+* Better search
+* Viewing requests
+* Payment improvements
+* Subscription plans
+
+## Phase 2: Multi-Tenant SaaS
+
+Focus on:
+
+* Organizations
+* Agencies
+* Teams
+* Staff invitations
+* Branches
+* Tenant roles
+* Usage limits
+* Tenant billing
+* Tenant dashboards
+* Audit logs
+
+## Phase 3: Advanced Rentals and Property Management
+
+Focus on:
+
+* Availability
+* Booking
+* Rental applications
+* Leases
+* Recurring rent
+* Tenant portals
+* Maintenance
+* Vendors
+* Reports
+
+## Phase 4: Property Sales Marketplace
+
+Focus on:
+
+* Buyer offers
+* Counteroffers
+* Viewings
+* Reservation
+* Sales milestones
+* Agent commission
+* Document collaboration
+
+## Phase 5: Advanced AI, Mobile, and International Expansion
+
+Focus on:
+
+* Advanced fraud detection
+* AI recommendations
+* AI lead scoring
+* AI document extraction
+* Mobile application
+* Multiple countries
+* Multiple currencies
+* Multiple languages
+* Enterprise features
+
+For every phase, provide:
+
+* Features
+* Technical tasks
+* Database changes
+* Security requirements
+* Dependencies
+* Testing requirements
+* Business outcome
+* Features that should not yet be built
+
+# 40. Feature Prioritization
+
+Classify all recommendations into:
+
+* Must Have
+* Should Have
+* Could Have
+* Future
+* Avoid for Now
+
+Also identify:
+
+* High-impact, low-effort features
+* High-risk features
+* Legally sensitive features
+* Financially regulated features
+* AI-dependent features
+* Expensive infrastructure features
+* Features requiring third-party providers
+* Features with high operational cost
+
+# 41. Required Final Deliverables
+
+Your final response must contain:
+
+1. Executive summary
+2. Current-system audit
+3. Strengths of the current product
+4. Critical weaknesses
+5. Missing commercial features
+6. Missing SaaS features
+7. Recommended product modules
+8. Recommended user roles
+9. Permission matrix
+10. Multi-tenant architecture
+11. Super Admin architecture
+12. Property-verification workflow
+13. Gemini AI verification architecture
+14. Fraud-detection architecture
+15. Listing-status workflow
+16. Rental workflow
+17. Sales workflow
+18. Property-management workflow
+19. Payment architecture
+20. Subscription and monetization strategy
+21. Database design
+22. API design
+23. Security plan
+24. DevOps plan
+25. Testing strategy
+26. Migration plan
+27. Development roadmap
+28. MVP scope
+29. Features to delay
+30. Top ten actions required before commercial launch
+
+# 42. Response Rules
+
+Follow these rules carefully:
+
+* Do not provide only generic recommendations.
+* Base your analysis on the current Property Pulse system.
+* Clearly state what should be retained.
+* Clearly state what should be modified.
+* Clearly state what should be replaced.
+* Clearly state what should be removed.
+* Explain technical and business trade-offs.
+* Avoid unnecessary microservices during the MVP.
+* Prioritize security and tenant isolation.
+* Treat payments as a financial system.
+* Treat property verification as a trust-and-safety system.
+* Treat Gemini as an assistant, not the final authority.
+* Require human review for high-risk decisions.
+* Do not automatically ban users based only on AI results.
+* Do not automatically reject ownership documents based only on AI.
+* Mark features requiring lawyers, payment providers, KYC providers, or licensed professionals.
+* Use tables where useful.
+* Provide text-based architecture diagrams.
+* Provide example database relationships.
+* Provide example API routes.
+* Provide example listing-status transitions.
+* Provide example Gemini JSON output.
+* Provide a practical implementation order.
+* Make recommendations suitable for a real development team.
+* Treat the platform as a commercial system that will handle real users, property documents, payments, rentals, sales, and business accounts.
+
+# 43. Repository Implementation Status (2026-08-09)
+
+All six phases have implemented foundations, but not all repository deliverables are complete. Phase 0 and Phase 5 are partial; Phases 1 through 4 are mostly implemented. This status deliberately distinguishes a model or API foundation from a complete, secure and operable workflow.
+
+The evidence-based phase status is maintained in `docs/ROADMAP_IMPLEMENTATION.md`, and the exact acceptance backlog is maintained in `docs/REMAINING_WORK.md`. Tasks that require external accounts, production secrets, provider acceptance, app-store credentials, licensed professionals, counsel, infrastructure access, or real-device/provider testing are isolated in `docs/MANUAL_SETUP.md` and are not represented as source-code work.

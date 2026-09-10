@@ -1,3 +1,244 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ── Custom properties ───────────────────────────────────────────── */
+:root {
+  --font-sans: "Inter", "Plus Jakarta Sans", system-ui, sans-serif;
+  --color-brand: #2563eb;
+  --color-brand-dark: #1d4ed8;
+  --color-surface: #f8fafc;
+  --radius-card: 1rem;
+  --shadow-card: 0 4px 24px -4px rgb(0 0 0 / 0.08), 0 1px 4px rgb(0 0 0 / 0.04);
+  --shadow-card-hover: 0 12px 40px -8px rgb(0 0 0 / 0.14), 0 2px 8px rgb(0 0 0 / 0.06);
+}
+
+/* ── Base ────────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-surface);
+  color: #0f172a;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
+}
+
+/* ── Tailwind grid shorthand ─────────────────────────────────────── */
+.grid-cols-70\/30 {
+  grid-template-columns: 70% 30%;
+}
+
+/* ── Animated gradient blob (hero accent) ───────────────────────── */
+@keyframes blob-float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(8px, -12px) scale(1.04); }
+  66%       { transform: translate(-6px, 6px) scale(0.96); }
+}
+.animate-blob {
+  animation: blob-float 8s ease-in-out infinite;
+}
+.animation-delay-2000 { animation-delay: 2s; }
+.animation-delay-4000 { animation-delay: 4s; }
+
+/* ── Fade-in-up for sections ─────────────────────────────────────── */
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up {
+  animation: fade-in-up 0.55s ease-out both;
+}
+
+/* ── Soft card ───────────────────────────────────────────────────── */
+.pp-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 0.22s ease, transform 0.22s ease, border-color 0.22s ease;
+}
+.pp-card:hover {
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
+  border-color: #bfdbfe;
+}
+
+/* ── Gradient badge ──────────────────────────────────────────────── */
+.pp-badge-brand {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  border-radius: 9999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ── Status badges ───────────────────────────────────────────────── */
+.status-verified   { @apply rounded-full bg-emerald-100 text-emerald-800 px-2.5 py-1 text-xs font-bold; }
+.status-pending    { @apply rounded-full bg-amber-100 text-amber-800 px-2.5 py-1 text-xs font-bold; }
+.status-rejected   { @apply rounded-full bg-red-100 text-red-800 px-2.5 py-1 text-xs font-bold; }
+.status-draft      { @apply rounded-full bg-slate-100 text-slate-600 px-2.5 py-1 text-xs font-bold; }
+
+/* ── Primary button ──────────────────────────────────────────────── */
+.btn-primary {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200;
+}
+.btn-primary:hover {
+  @apply bg-blue-700 shadow-md -translate-y-px;
+}
+.btn-primary:active {
+  @apply bg-blue-800 translate-y-0;
+}
+
+/* ── Secondary button ────────────────────────────────────────────── */
+.btn-secondary {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl border border-blue-600 px-5 py-2.5 text-sm font-semibold text-blue-700 transition-all duration-200;
+}
+.btn-secondary:hover {
+  @apply bg-blue-50;
+}
+
+/* ── Danger button ───────────────────────────────────────────────── */
+.btn-danger {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200;
+}
+.btn-danger:hover {
+  @apply bg-red-700;
+}
+
+/* ── Success button ──────────────────────────────────────────────── */
+.btn-success {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200;
+}
+.btn-success:hover {
+  @apply bg-emerald-700;
+}
+
+/* ── Ghost button ────────────────────────────────────────────────── */
+.btn-ghost {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-slate-700 transition-all duration-200;
+}
+.btn-ghost:hover {
+  @apply bg-slate-100;
+}
+
+/* ── Page header ─────────────────────────────────────────────────── */
+.pp-page-header {
+  @apply mb-8;
+}
+.pp-page-header__eyebrow {
+  @apply text-sm font-semibold uppercase tracking-widest text-blue-600;
+}
+.pp-page-header__title {
+  @apply mt-1 text-3xl font-extrabold tracking-tight text-slate-950 sm:text-4xl;
+}
+.pp-page-header__subtitle {
+  @apply mt-2 text-base text-slate-600;
+}
+
+/* ── Empty state ─────────────────────────────────────────────────── */
+.pp-empty {
+  @apply flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center;
+}
+.pp-empty__icon {
+  @apply mb-4 h-14 w-14 rounded-2xl bg-slate-100 p-3 text-slate-400;
+}
+.pp-empty__title {
+  @apply text-lg font-semibold text-slate-800;
+}
+.pp-empty__body {
+  @apply mt-1 text-sm text-slate-500;
+}
+
+/* ── Stat card ───────────────────────────────────────────────────── */
+.pp-stat {
+  @apply flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm;
+}
+.pp-stat__label {
+  @apply text-sm font-medium text-slate-500;
+}
+.pp-stat__value {
+  @apply mt-2 text-3xl font-extrabold text-slate-950;
+}
+.pp-stat__desc {
+  @apply mt-1 text-xs text-slate-400;
+}
+
+/* ── Smooth scroll snap for carousels ───────────────────────────── */
+.pp-scroll-snap {
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.pp-scroll-snap > * {
+  scroll-snap-align: start;
+}
+
+/* ── Prose override for dark headings ────────────────────────────── */
+.pp-prose h1, .pp-prose h2, .pp-prose h3 {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+/* ── Table helpers ───────────────────────────────────────────────── */
+.pp-table {
+  @apply min-w-full divide-y divide-slate-200 text-sm;
+}
+.pp-table thead th {
+  @apply px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500;
+}
+.pp-table tbody td {
+  @apply px-4 py-4 align-top;
+}
+.pp-table tbody tr {
+  @apply border-b border-slate-50 transition-colors;
+}
+.pp-table tbody tr:hover {
+  @apply bg-slate-50;
+}
+
+/* ── Responsive helper: hide-below-md ───────────────────────────── */
+@media (max-width: 767px) {
+  .hide-below-md { display: none !important; }
+}
+
+/* ── Focus ring ──────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Hide MapLibre GL attribution controls ───────────────────────────── */
+.maplibregl-ctrl-attrib,
+.maplibregl-ctrl-attrib-inner,
+.maplibregl-ctrl-attrib-button,
+.maplibregl-ctrl-bottom-right,
+.maplibregl-ctrl-bottom-left,
+.mapboxgl-ctrl-attrib,
+.mapboxgl-ctrl-attrib-inner,
+.mapboxgl-ctrl-bottom-right,
+.mapboxgl-ctrl-bottom-left {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}

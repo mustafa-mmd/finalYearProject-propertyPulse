@@ -1,0 +1,3 @@
+import connectDB from "@/config/database"; import Invoice from "@/models/Invoice"; import { requireActor } from "@/utils/authorization"; import { apiSuccess, handleApiError } from "@/utils/apiResponse";
+export const dynamic = "force-dynamic";
+export async function GET() { try { const actor = await requireActor(); await connectDB(); const items = await Invoice.find({ $or: [{ payerId: actor.id }, { payeeId: actor.id }] }).populate("propertyId", "name listingReference").sort({ dueAt: -1 }).limit(250).lean(); return apiSuccess({ items }); } catch (error) { return handleApiError(error, "invoices.list"); } }

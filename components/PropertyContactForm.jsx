@@ -1,5 +1,6 @@
+"use client";
+
 import { FaPaperPlane } from "react-icons/fa"
-import Message from "@/models/Message"
 import { useState } from "react"
 import { toast } from "react-toastify"
 import { useSession } from "next-auth/react"
@@ -23,14 +24,14 @@ const handleSubmit=async(e)=>{
   };
   try{
 
-const res=await fetch('/api/messages',{
+const res=await fetch('/api/conversations',{
   method:'POST',
   headers:{
     'Content-Type':'application/json'
   },
   body:JSON.stringify(data)
 });
-if(res.status===200){
+if(res.ok){
 toast.success('Message sent successfully');
 setWasSubmitted(true);
 

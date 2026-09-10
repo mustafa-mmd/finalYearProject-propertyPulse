@@ -1,0 +1,4 @@
+import { Schema, model, models } from "mongoose";
+const UnitSchema = new Schema({ tenantId: { type: Schema.Types.ObjectId, ref: "Organization", required: true, index: true }, buildingId: { type: Schema.Types.ObjectId, ref: "Building", required: true, index: true }, propertyId: { type: Schema.Types.ObjectId, ref: "Property" }, unitNumber: { type: String, required: true, maxlength: 50 }, floor: { type: String, maxlength: 30 }, bedrooms: { type: Number, min: 0 }, bathrooms: { type: Number, min: 0 }, status: { type: String, enum: ["VACANT", "OCCUPIED", "MAINTENANCE", "INACTIVE"], default: "VACANT", index: true }, deletedAt: Date }, { timestamps: true });
+UnitSchema.index({ buildingId: 1, unitNumber: 1 }, { unique: true });
+const Unit = models.Unit || model("Unit", UnitSchema); export default Unit;

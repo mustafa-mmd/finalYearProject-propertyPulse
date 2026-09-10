@@ -1,0 +1,3 @@
+import { Schema, model, models } from "mongoose";
+const AccountDeletionRequestSchema = new Schema({ userId: { type: Schema.Types.ObjectId, ref: "User", required: true, unique: true }, status: { type: String, enum: ["PENDING", "CANCELLED", "COMPLETED"], default: "PENDING", index: true }, reason: { type: String, maxlength: 1000 }, requestedAt: { type: Date, default: Date.now }, scheduledFor: { type: Date, required: true, index: true }, cancelledAt: Date, completedAt: Date }, { timestamps: true });
+const AccountDeletionRequest = models.AccountDeletionRequest || model("AccountDeletionRequest", AccountDeletionRequestSchema); export default AccountDeletionRequest;

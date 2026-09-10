@@ -1,96 +1,143 @@
-
+import mongoose from "mongoose";
 import connectDB from "@/config/database";
 import Message from "@/models/Message";
-import { getSessionUser } from "@/utils/getSessionUser";
+import Property from "@/models/Property";
+import User from "@/models/User";
+import ViewingAppointment from "@/models/ViewingAppointment";
+import RentalApplication from "@/models/RentalApplication";
+import Offer from "@/models/Offer";
+import LeadScore from "@/models/LeadScore";
+import { listingPublicFilter } from "@/config/listings";
+import { requireActor } from "@/utils/authorization";
+import { apiError, apiSuccess, handleApiError } from "@/utils/apiResponse";
+import { emitNotification } from "@/utils/events";
+import { calculateLeadScore } from "@/utils/recommendations";
+import { checkRateLimit, getClientIp } from "@/utils/rateLimit";
 
-// GET /api/messages
-export const GET = async () => {
+export const dynamic = "force-dynamic";
+
+export async function GET() {
   try {
+    const actor = await requireActor();
     await connectDB();
+    const messages = await Message.find({
+      recipient: actor.id,
+      deletedBy: { $ne: actor.id },
+    })
+      .sort({ read: 1, createdAt: -1 })
+      .populate("sender", "name image verification.status")
+      .populate("property", "name listingReference")
+      .limit(250)
+      .lean();
 
-    const sessionUser = await getSessionUser();
-    if (!sessionUser || !sessionUser.user) {
-      return new Response(JSON.stringify({ message: "User id is required" }), {
-        status: 401,
+    return apiSuccess({ messages });
+  } catch (error) {
+    return handleApiError(error, "messages.list");
+  }
+}
+
+export async function POST(request) {
+  try {
+    const actor = await requireActor();
+    const rate = await checkRateLimit(`message:${actor.id}:${getClientIp(request)}`, {
+      limit: 20,
+      windowMs: 60_000,
+    });
+
+    if (!rate.allowed) {
+      return apiError("Too many messages. Please wait a minute.", {
+        status: 429,
+        code: "RATE_LIMITED",
       });
     }
 
-    const { userId } = sessionUser;
+    const body = await request.json();
+    if (!mongoose.isValidObjectId(body.property)) {
+      return apiError("Property not found", { status: 404, code: "NOT_FOUND" });
+    }
 
-    // Fetch messages
-    const readMessages = await Message.find({
-      recipient: userId,
-      read: true,
-    })
-      .sort({ createdAt: -1 })
-      .populate("sender", "username")
-      .populate("property", "name");
+    const text = String(body.message || "").trim().slice(0, 5000);
+    if (text.length < 2) {
+      return apiError("Please enter a message before sending", {
+        status: 422,
+        code: "VALIDATION_ERROR",
+      });
+    }
 
-    const unreadMessages = await Message.find({
-      recipient: userId,
-      read: false,
-    })
-      .sort({ createdAt: -1 })
-      .populate("sender", "username")
-      .populate("property", "name");
-
-    // Fix: Spread both arrays properly
-    const messages = [...unreadMessages, ...readMessages];
-
-    return new Response(JSON.stringify(messages), { status: 200 });
-  } catch (err) {
-    console.error("GET /api/messages error:", err);
-    return new Response(JSON.stringify({ message: "Something went wrong" }), {
-      status: 500,
-    });
-  }
-};
-
-// POST /api/messages
-export const POST = async (request) => {
-  try {
     await connectDB();
+    const property = await Property.findOne({
+      _id: body.property,
+      ...listingPublicFilter(),
+    });
 
-    const { name, email, phone, message, property, recipient } =
-      await request.json();
-
-    const sessionUser = await getSessionUser();
-    if (!sessionUser || !sessionUser.user) {
-      return new Response(
-        JSON.stringify({ message: "You must be logged in to send a message" }),
-        { status: 401 }
-      );
+    if (!property) {
+      return apiError("Property not found", { status: 404, code: "NOT_FOUND" });
     }
 
-    const { user } = sessionUser;
-
-    // Cannot send message to self
-    if (user.id === recipient) {
-      return new Response(
-        JSON.stringify({ message: "Cannot send a message to yourself" }),
-        { status: 400 }
-      );
+    const recipient = property.owner?.[0]?.toString();
+    if (!recipient || recipient === actor.id) {
+      return apiError("You cannot send an inquiry to your own listing", {
+        status: 409,
+        code: "SELF_ACTION_DENIED",
+      });
     }
 
-    const newMessage = new Message({
-      sender: user.id,
+    const message = await Message.create({
+      tenantId: property.tenantId,
+      sender: actor.id,
       recipient,
-      property,
-      name,
-      email,
-      phone,
-      body: message,
+      property: property._id,
+      name: actor.name,
+      email: actor.email,
+      phone: String(body.phone || "").slice(0, 30),
+      body: text,
     });
 
-    await newMessage.save();
+    await emitNotification({
+      recipientId: recipient,
+      tenantId: property.tenantId,
+      type: "NEW_INQUIRY",
+      title: "New property inquiry",
+      body: `${actor.name || "A user"} sent an inquiry about ${property.name}.`,
+      href: "/messages",
+      dedupeKey: `message:${message._id}`,
+      channels: ["IN_APP", "EMAIL"],
+    });
 
-    return new Response(JSON.stringify({ message: "Message sent" }), {
-      status: 200,
+    const [user, viewing, application, offer] = await Promise.all([
+      User.findById(actor.id).select("bookmarks verification.status").lean(),
+      ViewingAppointment.exists({ requesterId: actor.id, propertyId: property._id }),
+      RentalApplication.exists({ applicantId: actor.id, propertyId: property._id }),
+      Offer.exists({ buyerId: actor.id, propertyId: property._id }),
+    ]);
+
+    const score = calculateLeadScore({
+      hasMessage: true,
+      hasViewing: Boolean(viewing),
+      hasBookmark: user?.bookmarks?.some((id) => id.toString() === property._id.toString()),
+      hasApplication: Boolean(application || offer),
+      verified: user?.verification?.status === "VERIFIED",
     });
-  } catch (err) {
-    console.error("POST /api/messages error:", err);
-    return new Response(JSON.stringify({ message: "Something went wrong" }), {
-      status: 500,
-    });
+
+    await LeadScore.findOneAndUpdate(
+      { userId: actor.id, propertyId: property._id },
+      {
+        $set: {
+          tenantId: property.tenantId,
+          ...score,
+          modelVersion: "rules-v1",
+          calculatedAt: new Date(),
+          expiresAt: new Date(Date.now() + 180 * 86_400_000),
+        },
+      },
+      { upsert: true, new: true }
+    );
+
+    return apiSuccess(
+      { message: "Message sent successfully", leadGrade: score.grade, id: message._id.toString() },
+      { status: 201 }
+    );
+  } catch (error) {
+    return handleApiError(error, "messages.create");
   }
-};
+}

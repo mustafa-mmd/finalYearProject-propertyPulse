@@ -1,0 +1,9 @@
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
+import EnterpriseApiKey from "@/models/EnterpriseApiKey";
+import EnterpriseWebhook from "@/models/EnterpriseWebhook";
+import EnterpriseSettings from "@/components/EnterpriseSettings";
+import { getActor } from "@/utils/authorization";
+import { getOrganizationAccess } from "@/utils/tenantAuthorization";
+export const dynamic = "force-dynamic";
+export default async function EnterprisePage({ params }) { const actor = await getActor(); const { id } = await params; if (!actor) redirect(`/api/auth/signin?callbackUrl=/organizations/${id}/enterprise`); const access = await getOrganizationAccess(id, actor); if (!access) notFound(); if (!access.permissions.includes("*") && !access.permissions.includes("settings.manage")) redirect(`/organizations/${id}`); const [keys, hooks] = await Promise.all([EnterpriseApiKey.find({ tenantId: id }).select("name prefix scopes status createdAt").sort({ createdAt: -1 }).lean(), EnterpriseWebhook.find({ tenantId: id, status: { $ne: "REVOKED" } }).select("name url events status").sort({ createdAt: -1 }).lean()]); const apiKeys = keys.map((item) => ({ id: item._id.toString(), name: item.name, prefix: item.prefix, scopes: item.scopes, status: item.status })); const webhooks = hooks.map((item) => ({ id: item._id.toString(), name: item.name, url: item.url, events: item.events, status: item.status })); return <main className="min-h-screen bg-slate-50 py-10"><div className="mx-auto max-w-5xl px-4"><Link href={`/organizations/${id}/dashboard`} className="text-sm font-bold text-blue-700">&larr; Operations dashboard</Link><div className="my-6"><h1 className="text-3xl font-bold">Enterprise integrations</h1><p className="mt-2 text-slate-600">Secure machine access and event delivery for {access.organization.name}.</p></div><EnterpriseSettings organizationId={id} apiKeys={apiKeys} webhooks={webhooks} /></div></main>; }

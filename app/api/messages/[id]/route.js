@@ -1,87 +1,29 @@
+import mongoose from "mongoose";
 import connectDB from "@/config/database";
 import Message from "@/models/Message";
-import { getSessionUser } from "@/utils/getSessionUser";
+import { requireActor } from "@/utils/authorization";
+import { apiError, apiSuccess, handleApiError } from "@/utils/apiResponse";
 
 export const dynamic = "force-dynamic";
 
-// PUT /api/messages/:id
-export const PUT = async (request, { params }) => {
+export async function PUT(_request, { params }) {
   try {
+    const actor = await requireActor(); const { id } = await params;
+    if (!mongoose.isValidObjectId(id)) return apiError("Message not found", { status: 404, code: "NOT_FOUND" });
     await connectDB();
-    const sessionUser = await getSessionUser();
+    const message = await Message.findOneAndUpdate({ _id: id, recipient: actor.id }, [{ $set: { read: { $not: ["$read"] } } }], { new: true });
+    if (!message) return apiError("Message not found", { status: 404, code: "NOT_FOUND" });
+    return apiSuccess({ read: message.read });
+  } catch (error) { return handleApiError(error, "messages.read-toggle"); }
+}
 
-    if (!sessionUser || !sessionUser.user) {
-      return new Response(JSON.stringify({ message: "User id is required" }), {
-        status: 401,
-      });
-    }
-
-    const { id } = params;
-    const userId = sessionUser.user.id;
-
-    const message = await Message.findById(id);
-    if (!message) {
-      return new Response(JSON.stringify({ message: "Message not found" }), {
-        status: 404,
-      });
-    }
-
-    if (message.recipient.toString() !== userId) {
-      return new Response(JSON.stringify({ message: "Unauthorized" }), {
-        status: 401,
-      });
-    }
-
-    message.read = !message.read;
-    await message.save();
-
-    return new Response(JSON.stringify({ read: message.read }), {
-      status: 200,
-    });
-  } catch (err) {
-    console.error("PUT /api/messages/[id] error:", err);
-    return new Response(JSON.stringify({ message: "Something went wrong" }), {
-      status: 500,
-    });
-  }
-};
-
-// DELETE /api/messages/:id
-export const DELETE = async (request, { params }) => {
+export async function DELETE(_request, { params }) {
   try {
+    const actor = await requireActor(); const { id } = await params;
+    if (!mongoose.isValidObjectId(id)) return apiError("Message not found", { status: 404, code: "NOT_FOUND" });
     await connectDB();
-    const sessionUser = await getSessionUser();
-
-    if (!sessionUser || !sessionUser.user) {
-      return new Response(JSON.stringify({ message: "User id is required" }), {
-        status: 401,
-      });
-    }
-
-    const { id } = params;
-    const userId = sessionUser.user.id;
-
-    const message = await Message.findById(id);
-    if (!message) {
-      return new Response(JSON.stringify({ message: "Message not found" }), {
-        status: 404,
-      });
-    }
-
-    if (message.recipient.toString() !== userId) {
-      return new Response(JSON.stringify({ message: "Unauthorized" }), {
-        status: 401,
-      });
-    }
-
-    await message.deleteOne();
-
-    return new Response(JSON.stringify({ success: true }), { status: 200 });
-  } catch (err) {
-    console.error("DELETE /api/messages/[id] error:", err);
-    return new Response(JSON.stringify({ message: "Something went wrong" }), {
-      status: 500,
-    });
-  }
-};
-
+    const result = await Message.updateOne({ _id: id, $or: [{ recipient: actor.id }, { sender: actor.id }] }, { $addToSet: { deletedBy: actor.id } });
+    if (!result.matchedCount) return apiError("Message not found", { status: 404, code: "NOT_FOUND" });
+    return apiSuccess({ deleted: true });
+  } catch (error) { return handleApiError(error, "messages.delete"); }
+}

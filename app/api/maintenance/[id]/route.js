@@ -1,0 +1,8 @@
+import mongoose from "mongoose";
+import connectDB from "@/config/database";
+import MaintenanceRequest from "@/models/MaintenanceRequest";
+import { MAINTENANCE_STATUSES } from "@/config/commerce";
+import { requireActor } from "@/utils/authorization";
+import { apiError, apiSuccess, handleApiError } from "@/utils/apiResponse";
+import { writeAuditLog } from "@/utils/audit";
+export async function PATCH(request, { params }) { try { const actor = await requireActor(); const { id } = await params; if (!mongoose.isValidObjectId(id)) return apiError("Request not found", { status: 404, code: "NOT_FOUND" }); const body = await request.json(); await connectDB(); const item = await MaintenanceRequest.findById(id); if (!item) return apiError("Request not found", { status: 404, code: "NOT_FOUND" }); const isOwner = item.ownerId.toString() === actor.id, isAssignee = item.assignedTo?.toString() === actor.id; if (!isOwner && !isAssignee) return apiError("Only the owner or assignee can update this request", { status: 403, code: "FORBIDDEN" }); if (!MAINTENANCE_STATUSES.includes(body.status)) return apiError("Invalid maintenance status", { status: 422, code: "VALIDATION_ERROR" }); item.status = body.status; if (body.status === "RESOLVED") item.resolution = { notes: String(body.notes || "").slice(0, 5000), resolvedAt: new Date(), resolvedBy: actor.id }; await item.save(); await writeAuditLog({ actor, action: "maintenance.status_update", targetType: "MaintenanceRequest", targetId: id, tenantId: item.tenantId, metadata: { status: body.status }, request }); return apiSuccess({ id, status: item.status }); } catch (error) { return handleApiError(error, "maintenance.update"); } }

@@ -1,63 +1,74 @@
-'use client'; // ✅ ADD THIS DIRECTIVE
+'use client';
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { getProperty } from "@/utils/requests";
+import PropertyLocationFields from "@/components/PropertyLocationFields";
+import {
+  EMPTY_LOCATION,
+  hasUsableLocation,
+  normalizeLocation,
+} from "@/utils/location";
 
 const PropertyEditForm = () => {
   const { id } = useParams();
   const router = useRouter();
 
   const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(true);
+
   const [fields, setFields] = useState({
     name: "",
     type: "",
     description: "",
-    location: {
-      street: "",
-      city: "",
-      state: "",
-      zipcode: ""
-    },
+    location: { ...EMPTY_LOCATION },
     beds: "",
     baths: "",
     square_feet: "",
     amenities: [],
     rates: {
+      nightly: "",
       weekly: "",
-      monthly: '',
-      nightly: "" // ✅ FIXED: was "nigthly"
+      monthly: "",
     },
     seller_info: {
       name: "",
       email: "",
-      phone: ""
+      phone: "",
     },
   });
-  
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setMounted(true);
-    
-    // Fetch property data for form
+
     const fetchPropertyData = async () => {
       try {
         const propertyData = await getProperty(id);
-        
-        // Check rates for null, if so then make empty string
-        if (propertyData && propertyData.rates) {
-          const defaultRates = { ...propertyData.rates };
-          for (const rate in defaultRates) {
-            if (defaultRates[rate] === null) {
-              defaultRates[rate] = '';
-            }
-          }
-          propertyData.rates = defaultRates;
-        }
 
-        setFields(propertyData);
+        // Normalize rates: safely handle old flat format (string/number),
+        // new nested format ({ enabled, price }), null, or undefined
+        const rawRates = propertyData?.rates || {};
+        const extractRate = (r) =>
+          typeof r === "object" && r !== null ? (r?.price ?? "") : (r ?? "");
+
+        const flatRates = {
+          nightly: extractRate(rawRates.nightly),
+          weekly:  extractRate(rawRates.weekly),
+          monthly: extractRate(rawRates.monthly),
+        };
+
+        setFields({
+          ...propertyData,
+          location: normalizeLocation(propertyData?.location),
+          amenities: propertyData?.amenities || [],
+          rates: flatRates,
+          seller_info: {
+            name:  propertyData?.seller_info?.name  ?? "",
+            email: propertyData?.seller_info?.email ?? "",
+            phone: propertyData?.seller_info?.phone ?? "",
+          },
+        });
       } catch (err) {
         console.error("Error fetching property:", err);
         toast.error("Failed to load property data");
@@ -65,7 +76,7 @@ const PropertyEditForm = () => {
         setLoading(false);
       }
     };
-    
+
     if (id) {
       fetchPropertyData();
     }
@@ -73,58 +84,48 @@ const PropertyEditForm = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
-    // Check if nested property
-    if (name.includes('.')) {
-      const [outerKey, innerKey] = name.split('.');
-      setFields((prevFields) => ({
-        ...prevFields,
+
+    if (name.includes(".")) {
+      const [outerKey, innerKey] = name.split(".");
+      setFields((prev) => ({
+        ...prev,
         [outerKey]: {
-          ...prevFields[outerKey],
-          [innerKey]: value
-        }
+          ...prev[outerKey],
+          [innerKey]: value,
+        },
       }));
     } else {
-      // Not nested property
-      setFields((prevFields) => ({
-        ...prevFields,
-        [name]: value
-      }));
+      setFields((prev) => ({ ...prev, [name]: value }));
     }
   };
 
   const handleAmenitiesChange = (e) => {
     const { value, checked } = e.target;
-    
-    // Clone the current array
-    const updatedAmenities = [...fields.amenities];
-    
-    if (checked) {
-      // Add value to the array
-      updatedAmenities.push(value);
-    } else {
-      // Remove value from array
-      const index = updatedAmenities.indexOf(value);
-      if (index !== -1) {
-        updatedAmenities.splice(index, 1); // ✅ FIXED: was slice, should be splice
+    setFields((prev) => {
+      const updated = [...prev.amenities];
+      if (checked && !updated.includes(value)) {
+        updated.push(value);
+      } else if (!checked) {
+        const idx = updated.indexOf(value);
+        if (idx !== -1) updated.splice(idx, 1);
       }
-    }
-    
-    // Update state with updated array
-    setFields((prevFields) => ({
-      ...prevFields,
-      amenities: updatedAmenities,
-    }));
+      return { ...prev, amenities: updated };
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
+    if (!hasUsableLocation(fields.location)) {
+      toast.error("Choose a usable property location before updating.");
+      return;
+    }
+
     try {
       const formData = new FormData(e.target);
       const res = await fetch(`/api/prop/${id}`, {
-        method: 'PUT',
-        body: formData
+        method: "PUT",
+        body: formData,
       });
 
       if (res.status === 200) {
@@ -133,7 +134,8 @@ const PropertyEditForm = () => {
       } else if (res.status === 401 || res.status === 403) {
         toast.error("Permission denied");
       } else {
-        toast.error("Something went wrong");
+        const payload = await res.json().catch(() => null);
+        toast.error(payload?.error?.message || "Something went wrong");
       }
     } catch (err) {
       console.error("Update error:", err);
@@ -141,7 +143,6 @@ const PropertyEditForm = () => {
     }
   };
 
-  // Show loading state
   if (loading) {
     return (
       <div className="flex justify-center items-center py-8">
@@ -150,12 +151,9 @@ const PropertyEditForm = () => {
     );
   }
 
-  // Show form only when mounted and not loading
   return mounted ? (
     <form onSubmit={handleSubmit}>
-      <h2 className="text-3xl text-center font-semibold mb-6">
-        Edit Property
-      </h2>
+      <h2 className="text-3xl text-center font-semibold mb-6">Edit Property</h2>
 
       <div className="mb-4">
         <label htmlFor="type" className="block text-gray-700 font-bold mb-2">
@@ -181,9 +179,7 @@ const PropertyEditForm = () => {
       </div>
 
       <div className="mb-4">
-        <label className="block text-gray-700 font-bold mb-2">
-          Listing Name
-        </label>
+        <label className="block text-gray-700 font-bold mb-2">Listing Name</label>
         <input
           type="text"
           id="name"
@@ -208,48 +204,15 @@ const PropertyEditForm = () => {
           placeholder="Add an optional description of your property"
           value={fields.description}
           onChange={handleChange}
-        ></textarea>
+        />
       </div>
 
-      <div className="mb-4 bg-blue-50 p-4">
-        <label className="block text-gray-700 font-bold mb-2">Location</label>
-        <input
-          type="text"
-          id="street"
-          name="location.street"
-          className="border rounded w-full py-2 px-3 mb-2"
-          placeholder="Street"
-          value={fields.location.street}
-          onChange={handleChange}
-        />
-        <input
-          type="text"
-          id="city"
-          name="location.city"
-          className="border rounded w-full py-2 px-3 mb-2"
-          placeholder="City"
-          required
-          value={fields.location.city}
-          onChange={handleChange}
-        />
-        <input
-          type="text"
-          id="state"
-          name="location.state"
-          className="border rounded w-full py-2 px-3 mb-2"
-          placeholder="State"
-          required
-          value={fields.location.state}
-          onChange={handleChange}
-        />
-        <input
-          type="text"
-          id="zipcode"
-          name="location.zipcode"
-          className="border rounded w-full py-2 px-3 mb-2"
-          placeholder="Zipcode"
-          value={fields.location.zipcode}
-          onChange={handleChange}
+      <div className="mb-6">
+        <PropertyLocationFields
+          value={fields.location}
+          onChange={(location) =>
+            setFields((current) => ({ ...current, location }))
+          }
         />
       </div>
 
@@ -291,14 +254,12 @@ const PropertyEditForm = () => {
             id="square_feet"
             name="square_feet"
             className="border rounded w-full py-2 px-3"
-            required
-            value={fields.square_feet} // ✅ FIXED: was square_feets
+            value={fields.square_feet}
             onChange={handleChange}
           />
         </div>
       </div>
 
-      {/* Amenities section remains the same */}
       <div className="mb-4">
         <label className="block text-gray-700 font-bold mb-2">Amenities</label>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -317,7 +278,7 @@ const PropertyEditForm = () => {
             { id: "amenity_air_conditioning", value: "Air Conditioning", label: "Air Conditioning" },
             { id: "amenity_balcony_patio", value: "Balcony/Patio", label: "Balcony/Patio" },
             { id: "amenity_smart_tv", value: "Smart TV", label: "Smart TV" },
-            { id: "amenity_coffee_maker", value: "Coffee Maker", label: "Coffee Maker" }
+            { id: "amenity_coffee_maker", value: "Coffee Maker", label: "Coffee Maker" },
           ].map((amenity) => (
             <div key={amenity.id}>
               <input
@@ -367,7 +328,7 @@ const PropertyEditForm = () => {
             <input
               type="number"
               id="nightly_rate"
-              name="rates.nightly" // ✅ FIXED: was "nigthly"
+              name="rates.nightly"
               className="border rounded w-full py-2 px-3"
               value={fields.rates.nightly}
               onChange={handleChange}
@@ -383,7 +344,7 @@ const PropertyEditForm = () => {
         <input
           type="text"
           id="seller_name"
-          name="seller_info.name" // ✅ FIXED: removed extra dot
+          name="seller_info.name"
           className="border rounded w-full py-2 px-3"
           placeholder="Name"
           value={fields.seller_info.name}
@@ -426,18 +387,12 @@ const PropertyEditForm = () => {
         <button
           className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full w-full focus:outline-none focus:shadow-outline transition-colors"
           type="submit"
-          disabled={loading}
         >
-          {loading ? "Updating..." : "Update Property"}
+          Update Property
         </button>
       </div>
     </form>
   ) : null;
-}
+};
 
 export default PropertyEditForm;
-
-
-      
-
-

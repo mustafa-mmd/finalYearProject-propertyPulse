@@ -1,0 +1,5 @@
+import connectDB from "@/config/database";
+import { apiError, apiSuccess, handleApiError } from "@/utils/apiResponse";
+import { authenticateMobileRequest } from "@/utils/mobileAuth";
+export async function GET(request) { try { await connectDB(); const auth = await authenticateMobileRequest(request); if (!auth) return apiError("Invalid or expired mobile session", { status: 401, code: "UNAUTHORIZED" }); return apiSuccess({ user: { id: auth.user._id.toString(), name: auth.user.name, email: auth.user.email, image: auth.user.image, roles: auth.user.roles, preferences: auth.user.preferences } }); } catch (error) { return handleApiError(error, "mobile.me"); } }
+export async function DELETE(request) { try { await connectDB(); const auth = await authenticateMobileRequest(request); if (!auth) return apiError("Invalid mobile session", { status: 401, code: "UNAUTHORIZED" }); auth.session.status = "REVOKED"; auth.session.revokedAt = new Date(); await auth.session.save(); return apiSuccess({ revoked: true }); } catch (error) { return handleApiError(error, "mobile.logout"); } }

@@ -11,9 +11,17 @@ const PaymentSchema = new Schema(
     paymentId: {
       type: String,
       required: true,
+      unique: true,
+    },
+    provider: {
+      type: String,
+      enum: ["payfast", "stripe", "paypal", "bank_transfer", "mobile_wallet"],
+      default: "payfast",
+      required: true,
     },
     
     // User Information
+    userId: { type: Schema.Types.ObjectId, ref: "User", index: true },
     userName: {
       type: String,
       required: true,
@@ -53,7 +61,10 @@ const PaymentSchema = new Schema(
     },
     currency: {
       type: String,
-      default: "PKR",
+      enum: ["ZAR"],
+      default: "ZAR",
+      uppercase: true,
+      required: true,
     },
     
     // Payment Status
@@ -72,8 +83,19 @@ const PaymentSchema = new Schema(
       amount_gross: String,
       amount_fee: String,
       amount_net: String,
-      signature: String,
     },
+    statusHistory: [
+      {
+        status: {
+          type: String,
+          enum: ["pending", "completed", "failed", "cancelled", "refunded"],
+          required: true,
+        },
+        source: { type: String, required: true, maxlength: 50 },
+        reference: { type: String, maxlength: 150 },
+        at: { type: Date, default: Date.now },
+      },
+    ],
     
     // Booking Period (optional - can be added later)
     bookingStartDate: {
@@ -95,6 +117,8 @@ const PaymentSchema = new Schema(
     cancelledAt: {
       type: Date,
     },
+    refundedAmount: { type: Number, default: 0, min: 0 },
+    reconciledAt: Date,
   },
   {
     timestamps: true, // Automatically adds createdAt and updatedAt
@@ -105,7 +129,7 @@ const PaymentSchema = new Schema(
 PaymentSchema.index({ userEmail: 1 });
 PaymentSchema.index({ propertyId: 1 });
 PaymentSchema.index({ paymentStatus: 1 });
-PaymentSchema.index({ transactionId: 1 });
+PaymentSchema.index({ createdAt: -1 });
 
 const Payment = models.Payment || model("Payment", PaymentSchema);
 

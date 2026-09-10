@@ -1,39 +1,64 @@
-
 import connectDB from "@/config/database";
 import Payment from "@/models/Payment";
 
-export async function GET(req) {
+export const dynamic = "force-dynamic";
+
+export async function GET(request) {
   try {
-    await connectDB();
+    const { searchParams } = new URL(request.url);
+    const transactionId = (
+      searchParams.get("transactionId") ||
+      searchParams.get("tid") ||
+      ""
+    ).trim();
 
-    const { searchParams } = new URL(req.url);
-    const transactionId = searchParams.get("transactionId") || searchParams.get("tid");
-
-    if (!transactionId) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Transaction ID required" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+    if (!/^[0-9a-f-]{36}$/i.test(transactionId)) {
+      return Response.json(
+        { success: false, error: "Valid transaction ID required" },
+        { status: 400, headers: { "Cache-Control": "no-store" } }
       );
     }
 
-    const payment = await Payment.findOne({ transactionId }).populate("propertyId");
+    await connectDB();
+    const payment = await Payment.findOne({ transactionId })
+      .select(
+        "transactionId propertyName amount currency paymentType paymentStatus paidAt cancelledAt createdAt updatedAt"
+      )
+      .lean();
 
     if (!payment) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Payment not found" }),
-        { status: 404, headers: { "Content-Type": "application/json" } }
+      return Response.json(
+        { success: false, error: "Payment not found" },
+        { status: 404, headers: { "Cache-Control": "no-store" } }
       );
     }
 
-    return new Response(
-      JSON.stringify({ success: true, payment }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
+    return Response.json(
+      {
+        success: true,
+        payment: {
+          transactionId: payment.transactionId,
+          propertyName: payment.propertyName,
+          amount: payment.amount,
+          currency: payment.currency || "ZAR",
+          paymentType: payment.paymentType,
+          paymentStatus: payment.paymentStatus,
+          paidAt: payment.paidAt || null,
+          cancelledAt: payment.cancelledAt || null,
+          createdAt: payment.createdAt,
+          updatedAt: payment.updatedAt,
+        },
+      },
+      { status: 200, headers: { "Cache-Control": "no-store" } }
     );
-  } catch (err) {
-    console.error("Error fetching payment:", err);
-    return new Response(
-      JSON.stringify({ success: false, error: "Server error" }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+  } catch (error) {
+    console.error("[payment] Could not fetch payment status", {
+      name: error?.name,
+      code: error?.code,
+    });
+    return Response.json(
+      { success: false, error: "Payment status is temporarily unavailable" },
+      { status: 500, headers: { "Cache-Control": "no-store" } }
     );
   }
 }

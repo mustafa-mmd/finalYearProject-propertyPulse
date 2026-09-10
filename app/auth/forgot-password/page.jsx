@@ -1,0 +1,2 @@
+import { ForgotPasswordForm } from "@/components/PasswordRecoveryForm";
+export default function ForgotPasswordPage() { return <main className="min-h-screen bg-slate-50 px-4 py-16"><div className="mx-auto max-w-md"><h1 className="text-center text-3xl font-bold">Recover your account</h1><p className="mb-8 mt-2 text-center text-slate-600">Reset links expire after 30 minutes and can be used once.</p><ForgotPasswordForm /></div></main>; }

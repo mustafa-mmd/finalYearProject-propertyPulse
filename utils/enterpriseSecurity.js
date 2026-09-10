@@ -1,0 +1,11 @@
+import crypto from "node:crypto";
+import EnterpriseApiKey from "@/models/EnterpriseApiKey";
+
+function encryptionKey() { return crypto.createHash("sha256").update(process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "development-only-key").digest(); }
+export function hashApiKey(value) { return crypto.createHash("sha256").update(value).digest("hex"); }
+export function createApiKey() { const secret = `pp_live_${crypto.randomBytes(32).toString("base64url")}`; return { secret, prefix: secret.slice(0, 16), secretHash: hashApiKey(secret) }; }
+export function createWebhookSecret() { return `whsec_${crypto.randomBytes(32).toString("base64url")}`; }
+export function encryptSecret(value) { const iv = crypto.randomBytes(12); const cipher = crypto.createCipheriv("aes-256-gcm", encryptionKey(), iv); const ciphertext = Buffer.concat([cipher.update(value, "utf8"), cipher.final()]); return [iv.toString("base64url"), cipher.getAuthTag().toString("base64url"), ciphertext.toString("base64url")].join("."); }
+export function decryptSecret(value) { const [iv, tag, ciphertext] = value.split("."); const decipher = crypto.createDecipheriv("aes-256-gcm", encryptionKey(), Buffer.from(iv, "base64url")); decipher.setAuthTag(Buffer.from(tag, "base64url")); return Buffer.concat([decipher.update(Buffer.from(ciphertext, "base64url")), decipher.final()]).toString("utf8"); }
+export async function authenticateEnterpriseRequest(request, scope) { const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, ""); if (!token?.startsWith("pp_live_")) return null; const key = await EnterpriseApiKey.findOne({ secretHash: hashApiKey(token), status: "ACTIVE", $or: [{ expiresAt: { $exists: false } }, { expiresAt: { $gt: new Date() } }] }); if (!key || !key.scopes.includes(scope)) return null; key.lastUsedAt = new Date(); await key.save(); return key; }
+export function validateWebhookUrl(value) { try { const url = new URL(value); if (url.protocol !== "https:") return null; const host = url.hostname.toLowerCase(); if (host === "localhost" || host === "0.0.0.0" || host === "::1" || /^127\./.test(host) || /^10\./.test(host) || /^192\.168\./.test(host) || /^172\.(1[6-9]|2\d|3[01])\./.test(host) || host.endsWith(".local")) return null; return url.toString(); } catch { return null; } }

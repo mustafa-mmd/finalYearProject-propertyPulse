@@ -1,0 +1,3 @@
+import Link from "next/link";
+export const metadata = { title: "Offline" };
+export default function OfflinePage() { return <main className="mx-auto flex min-h-[65vh] max-w-xl items-center px-4 text-center"><div className="w-full rounded-3xl border bg-white p-10"><p className="text-5xl" aria-hidden="true">⌁</p><h1 className="mt-4 text-3xl font-bold">You are offline</h1><p className="mt-3 text-slate-600">This page is not cached yet. Reconnect to load live listings, payments, messages and account data.</p><Link href="/" className="mt-6 inline-block rounded-xl bg-blue-600 px-5 py-3 font-bold text-white">Try home page</Link></div></main>; }

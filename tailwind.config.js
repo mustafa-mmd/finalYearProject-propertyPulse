@@ -1,5 +1,5 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+const tailwindConfig = {
   content: [
     "./pages/**/*.{js,ts,jsx,tsx}",
     "./components/**/*.{js,ts,jsx,tsx}",
@@ -9,7 +9,7 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['poppins', 'sans-serif'],
+        sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
       },
       gridTemplateColumns: {
         '70/30': '70% 28%',
@@ -19,4 +19,4 @@ module.exports = {
 }
 };
 
-
+export default tailwindConfig;

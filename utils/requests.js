@@ -1,37 +1,28 @@
-const apiUrl=process.env.NEXT_PUBLIC_API_URL || null
-async function getProperties({showFeatured=false}={}) {
-  try{
-    // Handle case where apiUrl is not set
-    if (!apiUrl) {
-      return [];
-    }
-    //fetch all properties
-    const res = await fetch(`${apiUrl}/prop${showFeatured ? '/featured' : ''}`,{cache:'no-store'});
-    if (!res.ok) {
-      throw new Error('Failed to fetch data');
-    }
-    return res.json();
-  }catch(err){
-    console.log(err);
-    return [];  
+export async function getProperties({ showFeatured = false } = {}) {
+  try {
+    const response = await fetch(
+      `/api/prop${showFeatured ? "/featured" : ""}`,
+      { cache: "no-store" }
+    );
+    if (!response.ok) throw new Error("Property request failed");
+    return response.json();
+  } catch (error) {
+    console.error("Could not load properties", error);
+    return showFeatured ? [] : { total: 0, properties: [] };
   }
 }
-//fech single property by id
-async function getProperty(id) {
-  try{
-    // Handle case where apiUrl is not set
-    if (!apiUrl) {
-      return null;
-    }
-    
-    const res = await fetch(`${apiUrl}/prop/${id}`);
-    if (!res.ok) {
-      throw new Error('Failed to fetch data');
-    }
-    return res.json();
-  }catch(err){
-    console.log(err);
-    return null;  
+
+export async function getProperty(id) {
+  if (!id) return null;
+
+  try {
+    const response = await fetch(`/api/prop/${encodeURIComponent(id)}`, {
+      cache: "no-store",
+    });
+    if (!response.ok) return null;
+    return response.json();
+  } catch (error) {
+    console.error("Could not load property", error);
+    return null;
   }
 }
-export { getProperties , getProperty };

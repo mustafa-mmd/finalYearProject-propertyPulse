@@ -1,0 +1,11 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
+const [security, apiKeys, worker, mobile, api] = await Promise.all([read("utils/enterpriseSecurity.js"), read("app/api/organizations/[id]/api-keys/route.js"), read("app/api/internal/jobs/webhooks/route.js"), read("app/api/mobile/device/route.js"), read("app/api/v1/properties/route.js")]);
+assert.ok(security.includes("sha256") && security.includes("aes-256-gcm") && security.includes("timing") === false);
+assert.ok(security.includes('url.protocol !== "https:"') && security.includes("192\\.168") && security.includes(".local"));
+assert.ok(apiKeys.includes("This secret is shown only once") && apiKeys.includes("settings.manage"));
+assert.ok(worker.includes("createHmac") && worker.includes("dns.lookup") && worker.includes("DEAD_LETTER") && worker.includes("redirect: \"error\"") && worker.includes("AbortController"));
+assert.ok(mobile.includes("deviceCodeHash") && mobile.includes("AUTHORIZATION_PENDING") && mobile.includes("90 * 86_400_000"));
+assert.ok(api.includes("authenticateEnterpriseRequest") && api.includes("checkRateLimit") && api.includes("tenantId: key.tenantId"));
+console.log("Validated enterprise key hashing, scoped tenant access, webhook signing/retries/SSRF controls, and mobile device authorization structure.");

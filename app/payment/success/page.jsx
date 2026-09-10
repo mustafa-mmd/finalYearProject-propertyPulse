@@ -1,222 +1,147 @@
-// export default function Success() {
-//   return (
-//     <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-green-100 via-green-50 to-white px-4">
-//       <div className="bg-white shadow-2xl rounded-3xl p-10 max-w-lg w-full text-center relative overflow-hidden">
-//         {/* ✅ Animated Check Circle */}
-//         <div className="flex justify-center mb-6">
-//           <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center animate-bounce">
-//             <svg
-//               xmlns="http://www.w3.org/2000/svg"
-//               className="h-12 w-12 text-green-600"
-//               fill="none"
-//               viewBox="0 0 24 24"
-//               stroke="currentColor"
-//               strokeWidth={2}
-//             >
-//               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-//             </svg>
-//           </div>
-//         </div>
-
-//         {/* ✅ Success Text */}
-//         <h1 className="text-4xl font-extrabold text-green-700 mb-4 drop-shadow">
-//           Payment Successful!
-//         </h1>
-//         <p className="text-gray-600 text-lg leading-relaxed mb-8">
-//            Thank you for your payment.  
-//           Your transaction was processed securely and successfully.
-//         </p>
-
-//         {/* ✅ Call-to-action buttons */}
-//         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-//           <a
-//             href="/"
-//             className="px-6 py-3 bg-green-600 text-white rounded-lg shadow-lg hover:bg-green-700 transition font-medium"
-//           >
-//             Go to Homepage
-//           </a>
-//           <a
-//             href="/properties"
-//             className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg shadow-md hover:bg-gray-200 transition font-medium"
-//           >
-//             Browse Properties
-//           </a>
-//         </div>
-
-//         {/* ✅ Decorative gradient bottom */}
-//         <div className="absolute bottom-0 left-0 w-full h-2 bg-gradient-to-r from-green-400 via-green-500 to-green-600 rounded-b-3xl" />
-//       </div>
-//     </div>
-//   );
-// }
-
-
-
-
-
 "use client";
-import { useSearchParams } from "next/navigation";
+
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
-export default function Success() {
+const TERMINAL_STATUSES = new Set(["completed", "failed", "cancelled", "refunded"]);
+
+function SuccessContent() {
   const searchParams = useSearchParams();
-  const [paymentData, setPaymentData] = useState(null);
+  const transactionId = searchParams.get("tid") || "";
+  const [payment, setPayment] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  const transactionId = searchParams.get("tid") || searchParams.get("transactionId");
-  const amount = searchParams.get("amount");
-  const type = searchParams.get("type");
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    if (transactionId) {
-      updateStatusAndFetch();
+    if (!transactionId) {
+      setError("The payment reference is missing.");
+      setLoading(false);
+      return;
     }
+
+    let active = true;
+    let timeoutId;
+    let attempts = 0;
+
+    async function loadStatus() {
+      try {
+        const response = await fetch(
+          `/api/payment/details?tid=${encodeURIComponent(transactionId)}`,
+          { cache: "no-store" }
+        );
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || "Payment status is unavailable");
+        }
+        if (!active) return;
+
+        setPayment(data.payment);
+        setError("");
+        attempts += 1;
+
+        if (!TERMINAL_STATUSES.has(data.payment.paymentStatus) && attempts < 8) {
+          timeoutId = setTimeout(loadStatus, 2000);
+        }
+      } catch (requestError) {
+        if (active) setError(requestError.message);
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    loadStatus();
+    return () => {
+      active = false;
+      clearTimeout(timeoutId);
+    };
   }, [transactionId]);
 
-  const updateStatusAndFetch = async () => {
-    try {
-      // First: Mark as completed
-      await fetch("/api/payment/test-complete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ transactionId }),
-      });
-      
-      // Wait for DB update
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      
-      // Then fetch updated details
-      const res = await fetch(`/api/payment/details?transactionId=${transactionId}`);
-      const data = await res.json();
-      if (data.success) {
-        setPaymentData(data.payment);
-      }
-    } catch (err) {
-      console.error("Error:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const money = useMemo(
+    () =>
+      new Intl.NumberFormat("en-ZA", {
+        style: "currency",
+        currency: payment?.currency || "ZAR",
+      }),
+    [payment?.currency]
+  );
+
+  const completed = payment?.paymentStatus === "completed";
+  const pending = payment?.paymentStatus === "pending";
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-green-100 via-green-50 to-white px-4">
-      <div className="bg-white shadow-2xl rounded-3xl p-10 max-w-2xl w-full text-center relative overflow-hidden">
-        <div className="flex justify-center mb-6">
-          <div className="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center animate-bounce">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-16 w-16 text-green-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={3}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
+    <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12">
+      <section className="w-full max-w-xl rounded-3xl border border-gray-200 bg-white p-8 text-center shadow-xl">
+        <div
+          className={`mx-auto flex h-20 w-20 items-center justify-center rounded-full text-4xl ${
+            completed ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"
+          }`}
+          aria-hidden="true"
+        >
+          {completed ? "✓" : "…"}
         </div>
 
-        <h1 className="text-4xl font-extrabold text-green-600 mb-4 drop-shadow">
-          Payment Successful!
+        <h1 className="mt-5 text-3xl font-bold text-gray-900">
+          {completed
+            ? "Payment confirmed"
+            : pending
+              ? "Payment confirmation pending"
+              : "Checking your payment"}
         </h1>
-
-        <p className="text-gray-600 text-lg leading-relaxed mb-8">
-          Your payment has been processed successfully. Thank you for your booking!
+        <p className="mt-3 text-slate-600">
+          {completed
+            ? "Your transaction has been securely processed and confirmed."
+            : "We are processing secure payment confirmation. Your booking/offer status will update shortly."}
         </p>
 
-        {loading ? (
-          <div className="flex justify-center items-center py-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-          </div>
-        ) : paymentData ? (
-          <div className="bg-gray-50 rounded-xl p-6 mb-8 text-left">
-            <h2 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2">
-              Payment Details
-            </h2>
-
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-gray-600 font-medium">Transaction ID:</span>
-                <span className="text-gray-900 font-mono text-sm">
-                  {paymentData.transactionId}
-                </span>
-              </div>
-
-              <div className="flex justify-between">
-                <span className="text-gray-600 font-medium">Property:</span>
-                <span className="text-gray-900 font-semibold">
-                  {paymentData.propertyName}
-                </span>
-              </div>
-
-              <div className="flex justify-between">
-                <span className="text-gray-600 font-medium">Customer:</span>
-                <span className="text-gray-900">{paymentData.userName}</span>
-              </div>
-
-              <div className="flex justify-between">
-                <span className="text-gray-600 font-medium">Email:</span>
-                <span className="text-gray-900">{paymentData.userEmail}</span>
-              </div>
-
-              <div className="flex justify-between">
-                <span className="text-gray-600 font-medium">Payment Type:</span>
-                <span className="text-gray-900 capitalize">
-                  {paymentData.paymentType} Rent
-                </span>
-              </div>
-
-              <div className="flex justify-between items-center pt-3 border-t">
-                <span className="text-gray-600 font-medium text-lg">Amount Paid:</span>
-                <span className="text-green-600 font-bold text-2xl">
-                  ${paymentData.amount}
-                </span>
-              </div>
-
-              <div className="flex justify-between">
-                <span className="text-gray-600 font-medium">Payment Date:</span>
-                <span className="text-gray-900">
-                  {new Date(paymentData.paidAt || paymentData.createdAt).toLocaleString()}
-                </span>
-              </div>
-
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600 font-medium">Status:</span>
-                <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
-                  {paymentData.paymentStatus.toUpperCase()}
-                </span>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="bg-gray-50 rounded-xl p-6 mb-8">
-            <p className="text-gray-600">Payment details will be available shortly.</p>
-            <p className="text-sm text-gray-500 mt-2">
-              Amount: ${amount} | Type: {type}
-            </p>
-          </div>
+        {loading && <p className="mt-6 text-sm text-blue-700">Checking status…</p>}
+        {error && (
+          <p role="alert" className="mt-6 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
+            {error} You can safely return later using this payment reference.
+          </p>
         )}
 
-        {/* ✅ FIXED: Links must use <Link> instead of plain text */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link
-            href="/properties"
-            className="px-8 py-3 bg-green-600 text-white rounded-lg shadow-lg hover:bg-green-700 transition font-medium"
-          >
-            Browse More Properties
-          </Link>
+        {payment && (
+          <dl className="mt-7 space-y-3 rounded-xl bg-slate-50 p-5 text-left text-sm border border-slate-100">
+            <Detail label="Property" value={payment.propertyName} />
+            <Detail label="Payment type" value={payment.paymentType} capitalize />
+            <Detail label="Amount" value={money.format(payment.amount)} />
+            <Detail label="Status" value={payment.paymentStatus} capitalize />
+            <Detail label="Reference" value={payment.transactionId} mono />
+          </dl>
+        )}
 
-          <Link
-            href="/"
-            className="px-8 py-3 bg-gray-100 text-gray-700 rounded-lg shadow-md hover:bg-gray-200 transition font-medium"
-          >
-            Go to Homepage
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <Link href="/bookings" className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700">
+            View Bookings
+          </Link>
+          <Link href="/offers" className="rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-700">
+            View Offers
+          </Link>
+          <Link href="/properties" className="rounded-xl bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-200">
+            Browse Properties
           </Link>
         </div>
+      </section>
+    </main>
+  );
+}
 
-        <div className="absolute bottom-0 left-0 w-full h-2 bg-gradient-to-r from-green-400 via-green-500 to-green-600 rounded-b-3xl" />
-      </div>
+function Detail({ label, value, capitalize = false, mono = false }) {
+  return (
+    <div className="flex flex-col justify-between gap-1 sm:flex-row">
+      <dt className="font-medium text-gray-500">{label}</dt>
+      <dd className={`${capitalize ? "capitalize" : ""} ${mono ? "break-all font-mono text-xs" : "font-semibold"} text-gray-900`}>
+        {value}
+      </dd>
     </div>
+  );
+}
+
+export default function SuccessPage() {
+  return (
+    <Suspense fallback={<main className="p-12 text-center">Checking payment…</main>}>
+      <SuccessContent />
+    </Suspense>
   );
 }

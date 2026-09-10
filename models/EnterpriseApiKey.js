@@ -1,0 +1,4 @@
+import { Schema, model, models } from "mongoose";
+const EnterpriseApiKeySchema = new Schema({ tenantId: { type: Schema.Types.ObjectId, ref: "Organization", required: true, index: true }, name: { type: String, required: true, maxlength: 120 }, prefix: { type: String, required: true, index: true }, secretHash: { type: String, required: true, unique: true }, scopes: [{ type: String, enum: ["properties.read", "reports.read", "webhooks.manage"] }], status: { type: String, enum: ["ACTIVE", "REVOKED"], default: "ACTIVE", index: true }, createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true }, lastUsedAt: Date, expiresAt: Date, revokedAt: Date }, { timestamps: true });
+EnterpriseApiKeySchema.index({ tenantId: 1, status: 1 });
+const EnterpriseApiKey = models.EnterpriseApiKey || model("EnterpriseApiKey", EnterpriseApiKeySchema); export default EnterpriseApiKey;

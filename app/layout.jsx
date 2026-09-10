@@ -1,101 +1,64 @@
-// import Navbar from "../components/Navbar";
-// import Footer from "../components/Footer";
-// import { ToastContainer} from 'react-toastify';
-// import "../styles/global.css";
-// import "react-toastify/dist/ReactToastify.css"
-// import { GlobalProvider } from "@/context/globalContext";
-// import 'photoswipe/dist/photoswipe.css'
-// import "@/utils/disableConsole";
-// export const metadata = {
-//   title: "Next.js Property App",
-//   description: "A property listing application built with Next.js",
-//   keywords: "Next.js, Property, Real Estate",
-// };
-
-// import AuthProvider from "@/components/AuthProvider";
-
-// export default function RootLayout({ children, session }) {
-//   return (
-//     <html lang="en">
-//       <body>
-//         <GlobalProvider>
-//         <AuthProvider session={session}>
-//           <Navbar />
-//           <main>{children}</main>
-//           <Footer />
-//           <ToastContainer/>
-//         </AuthProvider>
-//       </GlobalProvider>
-//       </body>
-//     </html>
-//   );
-// }
-
-
-//after deployment
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
-import { ToastContainer } from 'react-toastify';
-import "../styles/global.css";
-import "react-toastify/dist/ReactToastify.css"
-import { GlobalProvider } from "@/context/globalContext";
-import 'photoswipe/dist/photoswipe.css'
-import "@/utils/disableConsole";
+import { cookies } from "next/headers";
 import AuthProvider from "@/components/AuthProvider";
+import Footer from "@/components/Footer";
+import Navbar from "@/components/Navbar";
+import NotificationPermission from "@/components/NotificationPermission";
+import PwaSupport from "@/components/PwaSupport";
+import { I18nProvider } from "@/context/I18nContext";
+import { getMessages } from "@/utils/i18n";
+import { RTL_LOCALES, validLocale } from "@/config/international";
+import { GlobalProvider } from "@/context/globalContext";
+import { ToastContainer } from "react-toastify";
+import "@/styles/global.css";
+import "maplibre-gl/dist/maplibre-gl.css";
+import "photoswipe/dist/photoswipe.css";
+import "react-toastify/dist/ReactToastify.css";
 
-// Updated metadata with property/home related info
+const configuredDomain = process.env.NEXT_PUBLIC_DOMAIN || "http://localhost:3000";
+
 export const metadata = {
-  title: "PropertyPulse | Find Your Dream Home",
-  description: "Discover amazing properties for sale and rent. Find apartments, houses, villas, and commercial spaces.",
-  keywords: "real estate, property, homes for sale, apartments for rent, buy property, rent property, real estate listings",
+  title: {
+    default: "PropertyPulse - Global PropTech Marketplace",
+    template: "%s | PropertyPulse",
+  },
+  description:
+    "Discover, verify, rent, buy and manage residential and commercial property through a global PropTech marketplace.",
+  keywords:
+    "global property marketplace, PropTech SaaS, property management, real estate, buy and rent property",
   authors: [{ name: "PropertyPulse" }],
+  metadataBase: new URL(configuredDomain),
+  manifest: "/manifest.webmanifest",
   openGraph: {
-    title: "PropertyPulse | Find Your Dream Home",
-    description: "Discover amazing properties for sale and rent",
     type: "website",
+    siteName: "PropertyPulse",
+    title: "PropertyPulse - Global PropTech Marketplace",
+    description:
+      "Structured global locations, verification, transactions and multi-tenant property operations.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "PropertyPulse | Find Your Dream Home",
-    description: "Discover amazing properties for sale and rent",
-  }
+    title: "PropertyPulse",
+    description: "A global PropTech marketplace and property operations platform.",
+  },
 };
 
-export default function RootLayout({ children, session }) {
+export default async function RootLayout({ children }) {
+  const locale = validLocale((await cookies()).get("pp_locale")?.value);
+
   return (
-    <html lang="en">
-      <head>
-        {/* Simple emoji favicon that works immediately - Blue house icon */}
-        <link 
-          rel="icon" 
-          href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 fill=%22%233b82f6%22>🏠</text></svg>" 
-        />
-        
-        {/* For Apple devices */}
-        <link 
-          rel="apple-touch-icon" 
-          href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 fill=%22%233b82f6%22>🏠</text></svg>" 
-        />
-        
-        {/* Web App Manifest */}
-        <link rel="manifest" href="/site.webmanifest" />
-        
-        {/* Theme color for mobile browsers */}
-        <meta name="theme-color" content="#3b82f6" />
-        
-        {/* Essential meta tags */}
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="robots" content="index, follow" />
-        <meta name="googlebot" content="index, follow" />
-      </head>
-      <body>
+    <html lang={locale} dir={RTL_LOCALES.includes(locale) ? "rtl" : "ltr"}>
+      <body className="font-sans">
         <GlobalProvider>
-          <AuthProvider session={session}>
+          <I18nProvider locale={locale} messages={getMessages(locale)} fallbackMessages={getMessages("en")}>
+          <AuthProvider>
             <Navbar />
             <main>{children}</main>
             <Footer />
-            <ToastContainer />
+            <ToastContainer position="bottom-right" theme="light" />
+            <NotificationPermission />
+            <PwaSupport />
           </AuthProvider>
+          </I18nProvider>
         </GlobalProvider>
       </body>
     </html>

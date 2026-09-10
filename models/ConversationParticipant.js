@@ -1,0 +1,3 @@
+import { Schema, model, models } from "mongoose";
+const ConversationParticipantSchema = new Schema({ conversationId: { type: Schema.Types.ObjectId, ref: "Conversation", required: true, index: true }, userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true }, role: { type: String, enum: ["MEMBER", "OWNER", "ASSIGNEE"], default: "MEMBER" }, lastReadAt: Date, archivedAt: Date, mutedUntil: Date, blockedAt: Date }, { timestamps: true });
+ConversationParticipantSchema.index({ conversationId: 1, userId: 1 }, { unique: true }); const ConversationParticipant = models.ConversationParticipant || model("ConversationParticipant", ConversationParticipantSchema); export default ConversationParticipant;

@@ -1,0 +1,6 @@
+import { Schema, model, models } from "mongoose";
+import { LEASE_STATUSES } from "@/config/commerce";
+const LeaseSchema = new Schema({ tenantId: { type: Schema.Types.ObjectId, ref: "Organization", index: true }, propertyId: { type: Schema.Types.ObjectId, ref: "Property", required: true, index: true }, applicationId: { type: Schema.Types.ObjectId, ref: "RentalApplication" }, landlordId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true }, tenantUserIds: [{ type: Schema.Types.ObjectId, ref: "User", required: true }], status: { type: String, enum: LEASE_STATUSES, default: "DRAFT", index: true }, startDate: { type: Date, required: true }, endDate: { type: Date, required: true }, currency: { type: String, required: true, uppercase: true }, monthlyRent: { type: Number, required: true, min: 0 }, deposit: { type: Number, default: 0, min: 0 }, paymentDay: { type: Number, min: 1, max: 28, default: 1 }, terms: { type: String, maxlength: 20000 }, signatures: [{ userId: { type: Schema.Types.ObjectId, ref: "User" }, signedAt: Date, ipHash: String }], activatedAt: Date, endedAt: Date, deletedAt: Date }, { timestamps: true });
+LeaseSchema.index({ propertyId: 1, status: 1, startDate: 1, endDate: 1 });
+const Lease = models.Lease || model("Lease", LeaseSchema);
+export default Lease;

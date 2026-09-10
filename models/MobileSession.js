@@ -1,0 +1,3 @@
+import { Schema, model, models } from "mongoose";
+const MobileSessionSchema = new Schema({ userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true }, tokenHash: { type: String, required: true, unique: true }, deviceName: { type: String, maxlength: 120 }, platform: { type: String, maxlength: 40 }, status: { type: String, enum: ["ACTIVE", "REVOKED"], default: "ACTIVE", index: true }, lastUsedAt: Date, expiresAt: { type: Date, required: true, index: { expires: 0 } }, revokedAt: Date }, { timestamps: true });
+const MobileSession = models.MobileSession || model("MobileSession", MobileSessionSchema); export default MobileSession;

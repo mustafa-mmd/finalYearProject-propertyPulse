@@ -1,0 +1,13 @@
+"use client";
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+
+export default function NotificationPermission() {
+  const { status } = useSession(); const [permissionState, setPermissionState] = useState("default"); const [registered, setRegistered] = useState(false); const [available, setAvailable] = useState(false);
+  useEffect(() => { if (status !== "authenticated" || !("Notification" in window) || !("serviceWorker" in navigator)) return; setAvailable(true); setPermissionState(Notification.permission); if (Notification.permission === "granted") tryRegister(); }, [status]);
+  async function tryRegister() { try { const keyRes = await fetch("/api/push/subscribe"); if (!keyRes.ok) return; const payload = await keyRes.json(); const publicKey = payload?.data?.publicKey; if (!publicKey) return; const registration = await navigator.serviceWorker.register("/sw.js", { scope: "/" }); await navigator.serviceWorker.ready; const subscription = await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(publicKey) }); const response = await fetch("/api/push/subscribe", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...subscription.toJSON(), userAgent: navigator.userAgent.slice(0, 200) }) }); if (response.ok) setRegistered(true); } catch (error) { console.warn("[push] Registration failed", { name: error?.name }); } }
+  async function requestPermission() { const result = await Notification.requestPermission(); setPermissionState(result); if (result === "granted") await tryRegister(); }
+  if (!available || registered || permissionState !== "default") return null;
+  return <div role="banner" className="fixed bottom-4 right-4 z-50 flex max-w-sm items-center gap-3 rounded-xl border border-blue-200 bg-white/95 p-4 shadow-lg backdrop-blur"><span className="text-2xl" aria-hidden="true">🔔</span><div className="flex-1"><p className="text-sm font-semibold text-slate-900">Stay up to date</p><p className="text-xs text-slate-500">Get alerts for bookings, messages and property updates.</p></div><div className="flex flex-col gap-1.5"><button onClick={requestPermission} className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white">Enable</button><button onClick={() => setPermissionState("denied")} className="text-xs text-slate-400">Not now</button></div></div>;
+}
+function urlBase64ToUint8Array(value) { const padding = "=".repeat((4 - (value.length % 4)) % 4); const base64 = (value + padding).replace(/-/g, "+").replace(/_/g, "/"); return Uint8Array.from([...atob(base64)].map((char) => char.charCodeAt(0))); }

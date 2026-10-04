@@ -80,14 +80,7 @@ export default function Hero({ stats = {} }) {
   const currentTab = TABS[activeTab];
 
   return (
-    <section className="relative isolate overflow-hidden border-b border-slate-200 bg-white">
-      {/* Background decorations */}
-      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-        <div className="absolute -left-32 -top-32 h-[42rem] w-[42rem] rounded-full bg-blue-100/40 blur-3xl" />
-        <div className="absolute -right-32 bottom-0 h-[32rem] w-[32rem] rounded-full bg-blue-50/50 blur-3xl" />
-        <div className="absolute right-0 top-0 h-full w-1/2 bg-[radial-gradient(circle_at_center,_rgba(37,99,235,0.10),_transparent_68%)]" />
-        <div className="absolute inset-0 opacity-[0.025] [background-image:linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] [background-size:48px_48px]" />
-      </div>
+    <section className="relative isolate overflow-hidden border-b border-slate-200 bg-slate-50">
 
       <div className="relative mx-auto max-w-7xl px-4 pb-14 pt-12 sm:px-6 sm:pb-16 sm:pt-16 lg:px-8 lg:pb-20">
         <div className="grid items-center gap-12 lg:grid-cols-[1.03fr_0.97fr] lg:gap-16">

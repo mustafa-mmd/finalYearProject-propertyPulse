@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Image from "next/image";
 import connectDB from "@/config/database";
 import Booking from "@/models/Booking";
+import Property from "@/models/Property";
 import WorkflowStatusAction from "@/components/WorkflowStatusAction";
 import PayBookingButton from "@/components/PayBookingButton";
 import { getActor } from "@/utils/authorization";

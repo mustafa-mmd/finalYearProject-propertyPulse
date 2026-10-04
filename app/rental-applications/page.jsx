@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import Image from "next/image";
 import connectDB from "@/config/database";
 import RentalApplication from "@/models/RentalApplication";
+import Property from "@/models/Property";
+import User from "@/models/User";
 import WorkflowStatusAction from "@/components/WorkflowStatusAction";
 import PayApplicationButton from "@/components/PayApplicationButton";
 import { getActor } from "@/utils/authorization";

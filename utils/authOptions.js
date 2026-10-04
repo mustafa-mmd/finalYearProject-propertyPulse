@@ -137,7 +137,10 @@ export const authOptions = {
           token.uid = databaseUser._id.toString();
           token.name = databaseUser.name || providerUser.name || "";
           token.email = databaseUser.email || providerUser.email || "";
-          token.picture = databaseUser.image || providerUser.image || "";
+          
+          const rawPic = databaseUser.image || providerUser.image || "";
+          token.picture = rawPic.startsWith("data:") ? "" : rawPic;
+          
           token.sessionId = crypto.randomUUID();
           token.authTime = Date.now();
           token.mfaVerified = account?.provider === "credentials" ? providerUser._mfaVerified === true : !(databaseUser.security?.mfaEnabled || databaseUser.security?.mfaRequired);
@@ -148,7 +151,9 @@ export const authOptions = {
         }
         if (trigger === "update") {
           if (session?.user?.name) token.name = session.user.name;
-          if (session?.user?.image !== undefined) token.picture = session.user.image;
+          if (session?.user?.image !== undefined) {
+            token.picture = session.user.image?.startsWith("data:") ? "" : session.user.image;
+          }
           if (session?.mfaCode || session?.recoveryCode) {
             if (token.uid && token.sessionId) {
               const databaseUser = await User.findById(token.uid).select("+security.totpSecretCipher +security.recoveryCodeHashes");

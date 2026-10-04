@@ -307,55 +307,57 @@ export default async function HomePage() {
             </p>
           </div>
 
-          <div className="mx-auto mt-14 grid max-w-5xl gap-6 lg:grid-cols-3">
+          <div className="mt-10 grid gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 items-stretch">
             {PLANS.map((plan) => (
               <div
                 key={plan.name}
-                className={`relative flex flex-col rounded-3xl p-8 transition-all duration-300 ${plan.highlight
-                    ? "bg-white text-slate-900 shadow-2xl shadow-blue-950/50 ring-2 ring-blue-400 lg:scale-105"
+                className={`relative flex flex-col justify-between rounded-2xl p-4 sm:p-5 transition-all duration-300 ${
+                  plan.highlight
+                    ? "bg-white text-slate-900 shadow-2xl ring-2 ring-blue-500 z-10 scale-[1.02]"
                     : "bg-white/5 text-white backdrop-blur-sm border border-white/10 hover:bg-white/10"
-                  }`}
+                }`}
               >
                 {plan.badge && (
-                  <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-blue-500 px-4 py-1 text-xs font-bold text-white shadow-lg">
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-blue-500 px-3 py-0.5 text-[10px] font-bold text-white shadow-md uppercase tracking-wider whitespace-nowrap">
                     {plan.badge}
                   </span>
                 )}
 
                 <div>
-                  <p className={`text-sm font-bold uppercase tracking-widest ${plan.highlight ? "text-blue-600" : "text-blue-400"}`}>
+                  <p className={`text-xs font-bold uppercase tracking-wider ${plan.highlight ? "text-blue-600" : "text-blue-400"}`}>
                     {plan.name}
                   </p>
-                  <p className={`mt-2 text-sm ${plan.highlight ? "text-slate-500" : "text-blue-200"}`}>
+                  <p className={`mt-1.5 text-xs leading-relaxed ${plan.highlight ? "text-slate-600" : "text-blue-200"}`}>
                     {plan.description}
                   </p>
-                  <div className="mt-5 flex items-baseline gap-1">
-                    <span className="text-4xl font-extrabold">{plan.price}</span>
+                  <div className="mt-4 flex items-baseline gap-1">
+                    <span className="text-2xl font-extrabold tracking-tight">{plan.price}</span>
                     {plan.period && (
-                      <span className={`text-sm ${plan.highlight ? "text-slate-400" : "text-blue-300"}`}>{plan.period}</span>
+                      <span className={`text-xs ${plan.highlight ? "text-slate-400" : "text-blue-300"}`}>{plan.period}</span>
                     )}
                   </div>
                 </div>
 
-                <ul className="mt-7 flex-1 space-y-3 border-t border-current/10 pt-6">
+                <ul className="mt-5 flex-1 space-y-2 border-t border-current/10 pt-4 text-xs">
                   {plan.features.map((feature) => (
-                    <li key={feature.label} className={`flex items-center gap-3 text-sm ${plan.highlight ? "text-slate-700" : "text-blue-100"}`}>
+                    <li key={feature.label} className={`flex items-center gap-2 ${plan.highlight ? "text-slate-700" : "text-blue-100"}`}>
                       {feature.included ? (
-                        <FaCheck className={`shrink-0 text-emerald-500`} aria-hidden="true" />
+                        <FaCheck className="shrink-0 text-emerald-500 text-[11px]" aria-hidden="true" />
                       ) : (
-                        <FaTimes className={`shrink-0 ${plan.highlight ? "text-slate-300" : "text-slate-600"}`} aria-hidden="true" />
+                        <FaTimes className={`shrink-0 text-[11px] ${plan.highlight ? "text-slate-300" : "text-slate-600"}`} aria-hidden="true" />
                       )}
-                      <span className={!feature.included ? "opacity-50" : ""}>{feature.label}</span>
+                      <span className={`line-clamp-1 ${!feature.included ? "opacity-40" : ""}`}>{feature.label}</span>
                     </li>
                   ))}
                 </ul>
 
                 <Link
                   href={plan.href}
-                  className={`mt-8 block rounded-xl px-5 py-3.5 text-center text-sm font-bold transition-all ${plan.highlight
-                      ? "bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-600/25"
+                  className={`mt-6 block rounded-xl py-2.5 px-3 text-center text-xs font-bold transition-all ${
+                    plan.highlight
+                      ? "bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-600/25"
                       : "border border-white/20 text-white hover:bg-white/10"
-                    }`}
+                  }`}
                 >
                   {plan.cta}
                 </Link>
@@ -363,7 +365,7 @@ export default async function HomePage() {
             ))}
           </div>
 
-          <p className="mt-10 text-center text-sm text-blue-300">
+          <p className="mt-8 text-center text-xs text-blue-300">
             Need a custom plan?{" "}
             <Link href="/support" className="font-semibold text-white underline underline-offset-2 hover:text-blue-200">
               Contact our sales team

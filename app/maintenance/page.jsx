@@ -2,6 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import connectDB from "@/config/database";
 import MaintenanceRequest from "@/models/MaintenanceRequest";
+import Property from "@/models/Property";
+import User from "@/models/User";
 import OrganizationMember from "@/models/OrganizationMember";
 import MaintenanceStatusAction from "@/components/MaintenanceStatusAction";
 import { organizationPermissions } from "@/config/organizations";

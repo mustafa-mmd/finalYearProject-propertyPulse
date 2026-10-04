@@ -27,7 +27,11 @@ export const metadata = {
     "global property marketplace, PropTech SaaS, property management, real estate, buy and rent property",
   authors: [{ name: "PropertyPulse" }],
   metadataBase: new URL(configuredDomain),
-  manifest: "/manifest.webmanifest",
+  manifest: "/site.webmanifest",
+  icons: {
+    icon: "/icon.svg",
+    apple: "/icon.svg",
+  },
   openGraph: {
     type: "website",
     siteName: "PropertyPulse",

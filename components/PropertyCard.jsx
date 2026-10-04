@@ -95,20 +95,20 @@ const PropertyCard = ({ property }) => {
 
         <div className="border border-gray-100 mb-5"></div>
 
-        <div className="flex flex-col lg:flex-row justify-between mb-4">
-          <div className="flex align-middle gap-2 mb-4 lg:mb-0">
-            <FaMapMarker className="mt-1 text-orange-700" />
-            <span className="line-clamp-1 text-orange-700">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <FaMapMarker className="shrink-0 text-orange-700" />
+            <span className="truncate text-sm font-medium text-orange-700">
               {location.city && location.state
                 ? `${location.city}, ${location.state}`
                 : location.formattedAddress || buildLocationLabel(location)}
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <CompareButton propertyId={property._id.toString()} compact />
             <Link
               href={`/properties/${property._id}`}
-              className="h-[38px] rounded-lg bg-blue-500 px-4 py-2 text-center text-sm text-white hover:bg-blue-600"
+              className="rounded-lg bg-blue-600 px-4 py-2 text-center text-sm font-semibold text-white transition hover:bg-blue-700 shadow-sm hover:shadow"
             >
               Details
             </Link>

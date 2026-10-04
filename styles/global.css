@@ -7,7 +7,7 @@
   --font-sans: "Inter", "Plus Jakarta Sans", system-ui, sans-serif;
   --color-brand: #2563eb;
   --color-brand-dark: #1d4ed8;
-  --color-surface: #f8fafc;
+  --color-surface: #f8fafc;  /* matches hero gradient endpoint */
   --radius-card: 1rem;
   --shadow-card: 0 4px 24px -4px rgb(0 0 0 / 0.08), 0 1px 4px rgb(0 0 0 / 0.04);
   --shadow-card-hover: 0 12px 40px -8px rgb(0 0 0 / 0.14), 0 2px 8px rgb(0 0 0 / 0.06);
@@ -242,3 +242,22 @@ main {
   opacity: 0 !important;
   pointer-events: none !important;
 }
+
+/* Custom Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes gradient-x {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+.animate-gradient-x {
+  background-size: 200% 200%;
+  animation: gradient-x 5s ease infinite;
+}
+

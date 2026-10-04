@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import connectDB from "@/config/database";
 import Offer from "@/models/Offer";
+import Property from "@/models/Property";
 import OfferActions from "@/components/OfferActions";
 import PayOfferButton from "@/components/PayOfferButton";
 import { getActor } from "@/utils/authorization";

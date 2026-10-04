@@ -113,6 +113,7 @@ export default function UserAvatar({
         height={height}
         priority={priority}
         unoptimized={isExternal}
+        referrerPolicy="no-referrer"
         onError={() => setImgError(true)}
       />
     );

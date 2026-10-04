@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { FaSearch, FaTimes } from "react-icons/fa";
 import {
   FaArrowRight,
   FaCheckCircle,
@@ -53,6 +54,7 @@ export default function Hero({ stats = {} }) {
   const { data: session } = useSession();
   const isAdmin = session && canAccessAdmin(session.user?.permissions || []);
   const [activeTab, setActiveTab] = useState(0);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   const liveStats = [
     {
@@ -78,11 +80,12 @@ export default function Hero({ stats = {} }) {
   const currentTab = TABS[activeTab];
 
   return (
-    <section className="relative isolate overflow-visible border-b border-slate-200 bg-[#f7f9fc]">
+    <section className="relative isolate overflow-hidden border-b border-slate-200 bg-white">
       {/* Background decorations */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div className="absolute -left-40 -top-52 h-[34rem] w-[34rem] rounded-full bg-blue-200/45 blur-3xl" />
-        <div className="absolute right-0 top-0 h-full w-1/2 bg-[radial-gradient(circle_at_center,_rgba(37,99,235,0.12),_transparent_68%)]" />
+      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+        <div className="absolute -left-32 -top-32 h-[42rem] w-[42rem] rounded-full bg-blue-100/40 blur-3xl" />
+        <div className="absolute -right-32 bottom-0 h-[32rem] w-[32rem] rounded-full bg-blue-50/50 blur-3xl" />
+        <div className="absolute right-0 top-0 h-full w-1/2 bg-[radial-gradient(circle_at_center,_rgba(37,99,235,0.10),_transparent_68%)]" />
         <div className="absolute inset-0 opacity-[0.025] [background-image:linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] [background-size:48px_48px]" />
       </div>
 
@@ -98,7 +101,7 @@ export default function Hero({ stats = {} }) {
 
             <h1 className="mt-6 max-w-xl text-4xl font-black leading-[1.03] tracking-[-0.045em] text-slate-950 sm:text-5xl lg:text-[4.15rem]">
               Find a place that moves your life{" "}
-              <span className="relative whitespace-nowrap text-blue-600">
+              <span className="relative whitespace-nowrap animate-gradient-x bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent">
                 forward.
                 <svg viewBox="0 0 230 14" className="absolute -bottom-2 left-0 w-full text-blue-200" aria-hidden="true">
                   <path d="M3 10C62 2 159 2 227 7" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="7" />
@@ -163,11 +166,11 @@ export default function Hero({ stats = {} }) {
           </div>
 
           {/* RIGHT COLUMN — hero image */}
-          <div className="relative mx-auto w-full max-w-2xl lg:max-w-none">
-            <div className="absolute -inset-4 rotate-2 rounded-[2rem] bg-blue-600/10" aria-hidden="true" />
-            <div className="relative aspect-[4/3] overflow-hidden rounded-[1.75rem] border-[6px] border-white bg-slate-200 shadow-[0_28px_70px_-24px_rgba(15,23,42,0.45)]">
+          <div className="relative mx-auto w-full max-w-2xl lg:max-w-none animate-float">
+            <div className="absolute -inset-4 rotate-2 rounded-[2rem] bg-gradient-to-br from-blue-600/20 to-indigo-600/20 blur-xl" aria-hidden="true" />
+            <div className="relative aspect-[4/3] overflow-hidden rounded-[1.75rem] border-[6px] border-white/80 bg-slate-200 shadow-[0_28px_70px_-24px_rgba(15,23,42,0.45)] backdrop-blur-sm">
               <Image
-                src="/images/properties/f1.jpg"
+                src="/images/hero-new.jpg"
                 alt="Modern property listing"
                 fill
                 priority
@@ -198,15 +201,50 @@ export default function Hero({ stats = {} }) {
           </div>
         </div>
 
+        {/* MOBILE SEARCH TOGGLE BUTTON */}
+        <div className="mt-8 sm:hidden">
+          <button
+            type="button"
+            onClick={() => setMobileSearchOpen((open) => !open)}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-blue-200 bg-blue-600 px-5 py-4 text-sm font-bold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700 active:scale-[0.98]"
+          >
+            {mobileSearchOpen ? (
+              <>
+                <FaTimes aria-hidden="true" />
+                Close search
+              </>
+            ) : (
+              <>
+                <FaSearch aria-hidden="true" />
+                Search properties
+              </>
+            )}
+          </button>
+        </div>
+
         {/* SEARCH FORM — pre-filled by active tab */}
-        <div className="relative z-20 mt-10 rounded-[1.5rem] border border-slate-200/80 bg-white/70 p-2 shadow-[0_24px_60px_-28px_rgba(15,23,42,0.45)] backdrop-blur-xl sm:p-3 lg:mt-12">
-          <div className="px-2 pt-2 sm:px-3">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-blue-700">
-              Start your search — {currentTab.label}
-            </p>
-            <p className="mt-1 text-sm text-slate-500">
-              {currentTab.desc}. Refine by price, space, amenities, availability, and more.
-            </p>
+        {/* Hidden on mobile until toggle is pressed; always visible on sm+ */}
+        <div
+          className={`relative z-20 overflow-hidden transition-all duration-500 ease-in-out rounded-[1.5rem] border border-slate-200/80 bg-white p-2 shadow-2xl sm:mt-10 sm:block sm:p-3 lg:mt-12 ${mobileSearchOpen ? "mt-4 max-h-[800px] opacity-100" : "max-h-0 opacity-0 sm:max-h-[800px] sm:opacity-100 sm:overflow-visible"}`}
+        >
+          <div className="flex items-start justify-between px-2 pt-2 sm:px-3">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-blue-700">
+                Start your search — {currentTab.label}
+              </p>
+              <p className="mt-1 text-sm text-slate-500">
+                {currentTab.desc}. Refine by price, space, amenities, availability, and more.
+              </p>
+            </div>
+            {/* Close button inside panel — mobile only */}
+            <button
+              type="button"
+              onClick={() => setMobileSearchOpen(false)}
+              aria-label="Close search"
+              className="ml-3 mt-0.5 flex shrink-0 items-center justify-center rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 sm:hidden"
+            >
+              <FaTimes aria-hidden="true" />
+            </button>
           </div>
           <PropertySearchForm key={currentTab.purpose} tone="light" initialFilters={{ purpose: currentTab.purpose }} />
         </div>
@@ -232,3 +270,4 @@ export default function Hero({ stats = {} }) {
     </section>
   );
 }
+

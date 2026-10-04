@@ -47,14 +47,11 @@ const PropertySearchForm = ({
   const [isOptionsLoading, setIsOptionsLoading] = useState(true);
   const [isSuggestionsLoading, setIsSuggestionsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [showAdvanced, setShowAdvanced] = useState(() =>
-    hasAdvancedFilters(normalizeSearchFilters(initialFilters)),
-  );
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [locating, setLocating] = useState(false);
 
   useEffect(() => {
     setFilters(normalizedInitialFilters);
-    setShowAdvanced(hasAdvancedFilters(normalizedInitialFilters));
   }, [normalizedInitialFilters]);
 
   useEffect(() => {
@@ -334,15 +331,25 @@ const PropertySearchForm = ({
             type="button"
             onClick={() => setShowAdvanced((current) => !current)}
             aria-expanded={showAdvanced}
-            className="relative flex h-14 items-center justify-center gap-2 rounded-xl border border-slate-200 px-5 font-semibold text-slate-700 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
+            className={`relative flex h-14 items-center justify-center gap-2 rounded-xl border px-5 font-semibold transition focus:outline-none focus:ring-4 focus:ring-blue-100 ${
+              showAdvanced
+                ? "border-blue-600 bg-blue-50 text-blue-700 shadow-sm"
+                : "border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
+            }`}
           >
             <FaSlidersH aria-hidden="true" />
-            Filters
+            <span>{showAdvanced ? "Hide Filters" : "Filters"}</span>
             {activeFilterCount > 0 && (
               <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-600 px-1.5 text-xs text-white">
                 {activeFilterCount}
               </span>
             )}
+            <FaChevronDown
+              aria-hidden="true"
+              className={`text-xs transition-transform duration-200 ${
+                showAdvanced ? "rotate-180" : ""
+              }`}
+            />
           </button>
 
           <button
@@ -497,8 +504,17 @@ const PropertySearchForm = ({
               </label>
             </div>
 
-            {hasAnyFilter && (
-              <div className="mt-4 flex justify-end">
+            <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
+              <button
+                type="button"
+                onClick={() => setShowAdvanced(false)}
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 transition hover:text-blue-800 hover:underline"
+              >
+                <FaChevronDown className="rotate-180 text-[10px]" aria-hidden="true" />
+                Close filters
+              </button>
+
+              {hasAnyFilter && (
                 <button
                   type="button"
                   onClick={clearFilters}
@@ -507,8 +523,8 @@ const PropertySearchForm = ({
                   <FaTimes aria-hidden="true" />
                   Clear all filters
                 </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         )}
       </div>
